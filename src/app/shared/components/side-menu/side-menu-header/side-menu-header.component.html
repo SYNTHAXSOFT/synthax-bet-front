@@ -1,0 +1,58 @@
+<div id="logo" class="my-4 px-3">
+  <h1 class="fs-5 fs-md-4 fw-bold text-white">
+    {{ envs.companyName }}<span class="text-primary">{{ envs.companyName2 }}</span>
+  </h1>
+  <p class="text-secondary small">{{ envs.companySlogan }}</p>
+</div>
+
+<div id="profile" class="px-3">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h2 class="text-secondary"><b>Bienvenido</b></h2>
+      
+      <!-- Campanita navega al área principal -->
+      <button 
+          *ngIf="currentUser?.rol === 'CANDIDATO'"
+          (click)="irANotificaciones()"
+          class="position-relative btn btn-link text-white p-2"
+        >
+        <svg class="bi" width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6z"></path>
+          <path d="M10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path>
+        </svg>
+        
+        <span 
+          *ngIf="notificationCount > 0"
+          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+          style="animation: pulse 2s infinite;"
+        >
+          {{ notificationCount > 99 ? '99+' : notificationCount }}
+        </span>
+      </button>
+    </div>
+    
+    <!-- Resto del perfil -->
+    <a [routerLink]="homeRoute" class="d-inline-flex align-items-center text-decoration-none">
+        <span>
+            <img 
+              class="rounded-circle" 
+              style="width: 2rem; height: 2rem;"
+              src="https://ui-avatars.com/api/?name={{ fullName }}&background=3b82f6&color=fff" 
+              alt="Avatar">
+        </span>
+        <span class="ms-2 small fw-bold text-white">
+            {{ fullName }}
+        </span>
+    </a>
+    <p class="text-secondary small mt-1 ms-5 mb-4">{{ userRole }}</p>
+</div>
+
+<style>
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+</style>

@@ -1,0 +1,40 @@
+<div id="nav" class="w-100 px-3">
+
+  @for (item of menuOptions; track item.route) {
+    <a
+      [routerLink]="item.route"
+      routerLinkActive="bg-primary"
+      class="w-100 d-flex align-items-center text-decoration-none text-white border-bottom border-secondary py-3 px-2"
+      style="transition: background-color 0.15s ease-in-out;"
+      (click)="onSelect()"
+    >
+      <div class="me-2">
+        <i [class]="item.icon"></i>
+      </div>
+      <div class="d-flex flex-column">
+        <span class="fs-6 fw-bold">{{ item.label }}</span>
+        <span class="small text-white-50 d-none d-md-block">{{ item.subLabel }}</span>
+      </div>
+    </a>
+  }
+
+  <button
+    (click)="logout()"
+    class="w-100 d-flex align-items-center border-0 border-bottom border-secondary py-3 px-2 mt-3 bg-secondary text-white rounded"
+    style="transition: background-color 0.15s ease-in-out; cursor: pointer;"
+  >
+    <div class="me-2">
+      <i class="fa-solid fa-right-from-bracket text-danger"></i>
+    </div>
+    <div class="d-flex flex-column">
+      <span class="fs-6 fw-bold">Cerrar Sesión</span>
+    </div>
+  </button>
+
+</div>
+
+<style>
+  a:hover, button:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+  }
+</style>
