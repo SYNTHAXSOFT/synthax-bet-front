@@ -1,5 +1,5 @@
 <div class="container-fluid px-4">
-  <h2 class="mb-2">Lista de Usuarios</h2>
+  <h2 class="mb-2">Lista de usuarios</h2>
   <hr class="mb-4">
 
   @if (isLoading()) {
@@ -16,7 +16,6 @@
         <thead class="table-light">
           <tr>
             <th scope="col">Nombre</th>
-            <th scope="col">Apellido</th>
             <th scope="col">Email</th>
             <th scope="col">Rol</th>
             <th scope="col">Estado</th>
@@ -27,44 +26,29 @@
           @for (usuario of usuariosList(); track usuario.id) {
             <tr>
               <td>{{ usuario.nombre }}</td>
-              <td>{{ usuario.apellido }}</td>
               <td>{{ usuario.email }}</td>
               <td>
                 <span
-                  [class]="
-                    usuario.rol === 'ROOT' ? 'badge bg-purple' :
-                    usuario.rol === 'ADMINISTRADOR' ? 'badge bg-primary' :
-                    usuario.rol === 'CANDIDATO' ? 'badge bg-success' :
-                    'badge bg-warning text-dark'
-                  "
-                  [style.background-color]="usuario.rol === 'ROOT' ? '#6f42c1' : ''"
+                  class="badge"
+                  [style.background-color]="usuario.rol === 'ROOT' ? '#6f42c1' : '#0d6efd'"
                 >
                   {{ usuario.rol }}
                 </span>
               </td>
               <td>
-                <span
-                  [class]="usuario.activo
-                    ? 'badge bg-success'
-                    : 'badge bg-danger'"
-                >
+                <span [class]="usuario.activo ? 'badge bg-success' : 'badge bg-danger'">
                   {{ usuario.activo ? 'Activo' : 'Inactivo' }}
                 </span>
               </td>
-
               <td>
-                <button 
-                  class="btn btn-info btn-sm me-1" 
-                  (click)="editar(usuario.id!)">
-                  Editar
+                <button
+                  class="btn btn-info btn-sm me-1"
+                  (click)="editar(usuario)"
+                >
+                  <i class="fa-solid fa-pen-to-square me-1"></i>Editar
                 </button>
                 <button
-                  [class]="puedeModificar(usuario) 
-                    ? (usuario.activo 
-                      ? 'btn btn-danger btn-sm'
-                      : 'btn btn-success btn-sm')
-                    : 'btn btn-secondary btn-sm'"
-                  [disabled]="!puedeModificar(usuario)"
+                  [class]="usuario.activo ? 'btn btn-warning btn-sm' : 'btn btn-success btn-sm'"
                   (click)="activarInactivarAction(usuario)"
                 >
                   {{ usuario.activo ? 'Desactivar' : 'Activar' }}
@@ -74,7 +58,7 @@
           }
           @empty {
             <tr>
-              <td colspan="6" class="text-center text-muted py-4">
+              <td colspan="5" class="text-center text-muted py-4">
                 No hay usuarios registrados
               </td>
             </tr>
@@ -86,7 +70,7 @@
 
   @if (isError()) {
     <div class="alert alert-danger mt-3" role="alert">
-      {{ errorMessage() }}
+      <i class="fa-solid fa-circle-exclamation me-2"></i>{{ errorMessage() }}
     </div>
   }
 </div>

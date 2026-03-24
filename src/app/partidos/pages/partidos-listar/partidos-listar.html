@@ -1,0 +1,125 @@
+<div class="container-fluid px-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h2>Partidos de hoy</h2>
+    @if (esAdmin) {
+      <button
+        class="btn btn-primary btn-sm"
+        (click)="sincronizar()"
+        [disabled]="sincronizando"
+      >
+        @if (sincronizando) {
+          <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+        }
+        {{ sincronizando ? 'Sincronizando...' : 'Sincronizar API' }}
+      </button>
+    }
+  </div>
+  <hr class="mb-3">
+
+  <!-- Filtro de equipo -->
+  <div class="card mb-4">
+    <div class="card-body py-3">
+      <div class="row g-3 align-items-end">
+
+        <div class="col-12 col-md-5">
+          <label class="form-label small fw-semibold mb-1">Buscar equipo</label>
+          <input
+            type="text"
+            class="form-control form-control-sm"
+            placeholder="Ej: Millonarios, Nacional, Real Madrid..."
+            [(ngModel)]="equipoFiltro"
+            (input)="aplicarFiltro()"
+          />
+        </div>
+
+        <div class="col-12 col-md-1 d-flex align-items-end">
+          <button
+            class="btn btn-secondary btn-sm w-100"
+            (click)="limpiarFiltro()"
+            [disabled]="!hayFiltro"
+            title="Limpiar filtro"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="col-12 col-md-6 d-flex align-items-end justify-content-end">
+          @if (partidosCompletos.length > 0) {
+            <small class="text-muted">
+              Mostrando
+              <span class="fw-semibold" [class.text-primary]="hayFiltro">{{ partidos.length }}</span>
+              de
+              <span class="fw-semibold">{{ partidosCompletos.length }}</span>
+              partidos
+              @if (hayFiltro) {
+                <span class="text-primary"> · filtro activo</span>
+              }
+            </small>
+          }
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  @if (cargando) {
+    <div class="d-flex justify-content-center align-items-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+  }
+
+  @if (!cargando) {
+    <div class="table-responsive">
+      <table class="table table-striped table-hover table-bordered">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Local</th>
+            <th scope="col">Visitante</th>
+            <th scope="col">Liga</th>
+            <th scope="col">Hora</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Resultado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (partido of partidos; track partido.id) {
+            <tr>
+              <td class="fw-semibold">{{ partido.equipoLocal }}</td>
+              <td class="fw-semibold">{{ partido.equipoVisitante }}</td>
+              <td class="small">{{ partido.liga }}</td>
+              <td>{{ partido.fechaPartido | date:'HH:mm' }}</td>
+              <td>
+                <span [class]="getBadgeEstado(partido.estado)">
+                  {{ partido.estado }}
+                </span>
+              </td>
+              <td class="text-center">
+                @if (partido.golesLocal != null && partido.golesVisitante != null) {
+                  <strong>{{ partido.golesLocal }} - {{ partido.golesVisitante }}</strong>
+                } @else {
+                  <span class="text-muted">-</span>
+                }
+              </td>
+            </tr>
+          }
+          @empty {
+            <tr>
+              <td colspan="6" class="text-center text-muted py-4">
+                @if (hayFiltro) {
+                  Ningún partido coincide con "<strong>{{ equipoFiltro }}</strong>".
+                  <button class="btn btn-link btn-sm p-0 ms-1" (click)="limpiarFiltro()">Limpiar</button>
+                } @else {
+                  No hay partidos programados para hoy. Use el botón <strong>Sincronizar API</strong>.
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>

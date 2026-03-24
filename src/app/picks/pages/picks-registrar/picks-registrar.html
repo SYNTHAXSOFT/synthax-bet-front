@@ -1,0 +1,136 @@
+<h2 class="mb-2">Registrar Pick</h2>
+<hr class="mb-4">
+
+<div class="container" style="max-width: 88rem;">
+  <div class="card shadow-sm">
+    <div class="card-body p-4">
+      <form [formGroup]="myForm" (ngSubmit)="onSave()">
+
+        <!-- Partido -->
+        <div class="mb-3">
+          <label class="form-label">Partido</label>
+          <select
+            formControlName="partidoId"
+            class="form-select"
+          >
+            <option [value]="null" disabled selected>Seleccione un partido</option>
+            @for (partido of partidos; track partido.id) {
+              <option [value]="partido.id">
+                {{ partido.equipoLocal }} vs {{ partido.equipoVisitante }} — {{ partido.liga }}
+              </option>
+            }
+          </select>
+          @if (partidos.length === 0) {
+            <div class="text-muted small mt-1">No hay partidos de hoy disponibles.</div>
+          }
+          @if (isValidField('partidoId')) {
+            <div class="text-danger small mt-1">
+              {{ getFieldError('partidoId') }}
+            </div>
+          }
+        </div>
+
+        <!-- Nombre de mercado -->
+        <div class="mb-3">
+          <label class="form-label">Nombre del mercado</label>
+          <input
+            type="text"
+            placeholder="Ej: Más de 2.5 goles"
+            formControlName="nombreMercado"
+            class="form-control"
+          />
+          @if (isValidField('nombreMercado')) {
+            <div class="text-danger small mt-1">
+              {{ getFieldError('nombreMercado') }}
+            </div>
+          }
+        </div>
+
+        <div class="row g-3 mb-3">
+
+          <!-- Probabilidad -->
+          <div class="col-12 col-md-4">
+            <label class="form-label">Probabilidad (0.01 – 1.00)</label>
+            <input
+              type="number"
+              step="0.01"
+              min="0.01"
+              max="1"
+              placeholder="Ej: 0.75"
+              formControlName="probabilidad"
+              class="form-control"
+            />
+            @if (isValidField('probabilidad')) {
+              <div class="text-danger small mt-1">
+                {{ getFieldError('probabilidad') }}
+              </div>
+            }
+          </div>
+
+          <!-- Cuota -->
+          <div class="col-12 col-md-4">
+            <label class="form-label">Valor de cuota</label>
+            <input
+              type="number"
+              step="0.01"
+              min="1"
+              placeholder="Ej: 1.85"
+              formControlName="valorCuota"
+              class="form-control"
+            />
+            @if (isValidField('valorCuota')) {
+              <div class="text-danger small mt-1">
+                {{ getFieldError('valorCuota') }}
+              </div>
+            }
+          </div>
+
+          <!-- Canal -->
+          <div class="col-12 col-md-4">
+            <label class="form-label">Canal</label>
+            <select formControlName="canal" class="form-select">
+              @for (canal of canalesDisponibles; track canal) {
+                <option [value]="canal">{{ canal }}</option>
+              }
+            </select>
+            @if (isValidField('canal')) {
+              <div class="text-danger small mt-1">
+                {{ getFieldError('canal') }}
+              </div>
+            }
+          </div>
+
+        </div>
+
+        <!-- Casa de apuestas -->
+        <div class="mb-3">
+          <label class="form-label">Casa de apuestas</label>
+          <select formControlName="casaApuestas" class="form-select">
+            <option value="" disabled selected>Seleccione una casa</option>
+            @for (casa of casasDisponibles; track casa) {
+              <option [value]="casa">{{ casa }}</option>
+            }
+          </select>
+          @if (isValidField('casaApuestas')) {
+            <div class="text-danger small mt-1">
+              {{ getFieldError('casaApuestas') }}
+            </div>
+          }
+        </div>
+
+        <!-- Botón -->
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-primary px-4">
+            Guardar pick
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Tabla de picks -->
+  <div class="mt-4">
+    <app-picks-listar></app-picks-listar>
+  </div>
+</div>

@@ -18,38 +18,13 @@ export class SideMenuHeaderComponent implements OnInit {
   private router = inject(Router);
   
   currentUser: any = null;
-  homeRoute: string = '/synthax-votos';
-  
-  // Notificaciones
+  homeRoute: string = '/statbet';
+
   notificationCount = 0;
-  
-  // Cache del candidatoId
-  private cachedCandidatoId: number | null = null;
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
-
-    if (this.currentUser?.rol === 'CANDIDATO') {
-        this.cachedCandidatoId = this.currentUser?.candidatoId || 
-                                this.currentUser?.candidato_id || 
-                                this.currentUser?.candidato?.id || 
-                                null;
-        
-        if (this.cachedCandidatoId) {
-            this.loadNotifications();
-        }
-    }
-    
     this.homeRoute = this.authService.getDefaultRouteByRole();
-    
-    this.cachedCandidatoId = this.currentUser?.candidatoId || 
-                            this.currentUser?.candidato_id || 
-                            this.currentUser?.candidato?.id || 
-                            null;
-    
-    if (this.cachedCandidatoId) {
-      this.loadNotifications();
-    }
   }
 
   get fullName(): string {
@@ -61,34 +36,7 @@ export class SideMenuHeaderComponent implements OnInit {
     return this.currentUser?.rol || '';
   }
 
-  getCurrentCandidatoId(): number {
-    if (this.cachedCandidatoId) {
-      return this.cachedCandidatoId;
-    }
-    
-    const freshUser = this.authService.getCurrentUser();
-    const candidatoId = freshUser?.candidatoId ||      
-                       freshUser?.candidato_id ||     
-                       freshUser?.candidato?.id ||    
-                       null;
-    
-    if (candidatoId) {
-      this.cachedCandidatoId = candidatoId;
-    }
-    
-    return candidatoId || 1;
-  }
-
-  loadNotifications(): void {
-    const candidatoId = this.getCurrentCandidatoId();
-    
-    if (!candidatoId || candidatoId === 0) {
-      this.notificationCount = 0;
-      return;
-    }
-  }
-
   irANotificaciones(): void {
-    this.router.navigate(['/synthax-votos/notificaciones']);
+    this.router.navigate(['/statbet/notificaciones']);
   }
 }

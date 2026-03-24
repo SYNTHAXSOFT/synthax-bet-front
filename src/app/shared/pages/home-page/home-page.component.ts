@@ -14,7 +14,7 @@ import { LoginRequest } from '../../../auth/interfaces/auth.interface';
 export class HomePageComponent {
 
   credentials: LoginRequest = {
-    cedula: '',
+    email: '',
     password: ''
   };
 
@@ -27,7 +27,7 @@ export class HomePageComponent {
   ) {}
 
   onLogin(): void {
-  if (!this.credentials.cedula || !this.credentials.password) {
+  if (!this.credentials.email || !this.credentials.password) {
     this.errorMessage = 'Por favor completa todos los campos';
     return;
   }

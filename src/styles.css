@@ -227,31 +227,31 @@ h6 { font-size: 1rem; }
   box-shadow: var(--shadow-sm);
 }
 
-.table thead,
-.table-light {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
+/* Solo el encabezado lleva el gradiente oscuro */
+.table thead tr th {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
   color: white !important;
-  border: none;
-}
-
-.table thead th,
-.table-light th {
-  border: none !important;
+  border-bottom: none !important;
   font-weight: 600;
   text-transform: uppercase;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   letter-spacing: 0.5px;
-  color: white !important;
+}
+
+/* Celdas del cuerpo: texto oscuro siempre */
+.table tbody td {
+  color: var(--text-primary) !important;
+  border-color: #e2e8f0;
+  vertical-align: middle;
 }
 
 .table-hover tbody tr:hover {
-  background-color: #d1fae5;
-  transform: scale(1.005);
-  transition: all 0.2s ease-in-out;
+  background-color: #d1fae5 !important;
 }
 
-.table-striped tbody tr:nth-of-type(odd) {
-  background-color: #ecfdf5;
+.table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: #f0fdf4;
+  color: var(--text-primary);
 }
 
 /* ========================================

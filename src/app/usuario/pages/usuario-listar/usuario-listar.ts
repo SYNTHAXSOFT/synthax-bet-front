@@ -1,132 +1,77 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { ɵInternalFormsSharedModule, ReactiveFormsModule } from '@angular/forms';
+import { Component, inject, signal, OnInit, Output, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { UsuarioService } from '../../services/usuario.service';
-import { AuthService } from '../../../auth/services/auth.service'; 
+import { AuthService } from '../../../auth/services/auth.service';
 import { Usuario } from '../../interfaces/usuario.interface';
 
 @Component({
   selector: 'app-listar-page',
-  imports: [ɵInternalFormsSharedModule, ReactiveFormsModule],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './usuario-listar.html',
 })
-
 export class ListarPage implements OnInit {
 
-
-  constructor(private router: Router){}
-
   private readonly usuarioService = inject(UsuarioService);
-  private readonly authService = inject(AuthService);  
+  private readonly authService = inject(AuthService);
+
+  @Output() solicitudEditar = new EventEmitter<Usuario>();
 
   isLoading = signal(false);
   isError = signal(false);
   errorMessage = signal<string | null>(null);
-
   usuariosList = signal<Usuario[]>([]);
-  currentUserRole: string = ''; 
+
+  currentUserRole: string = '';
 
   ngOnInit(): void {
     this.currentUserRole = this.authService.getUserRole() || '';
     this.listarAction();
   }
 
-  listarAction() {
-  if (this.isLoading()) return;
-
-  this.isLoading.set(true);
-  this.isError.set(false);
-  this.errorMessage.set(null);
-
-  // 👇 CAMBIAR DE listarUsuarios() a listarUsuariosFiltrados()
-  this.usuarioService.listarUsuariosFiltrados().subscribe({
-    next: (usuariosResponse) => {
-      this.isLoading.set(false);
-      this.usuariosList.set(usuariosResponse);
-    },
-    error: (error) => {
-      this.isLoading.set(false);
-      this.isError.set(true);
-      this.errorMessage.set(error.error?.error || 'Error al cargar usuarios');
-      this.usuariosList.set([]);
-    }
-  });
-}
-
-  filtrarUsuariosPorRol(usuarios: Usuario[]): Usuario[] {
-    switch (this.currentUserRole) {
-      case 'ROOT':
-        // ROOT ve todos los usuarios
-        return usuarios;
-      
-      case 'CANDIDATO':
-        // CANDIDATO solo ve ADMINISTRADOR y TESTIGO
-        return usuarios.filter(u => 
-          u.rol === 'ADMINISTRADOR' || u.rol === 'TESTIGO'
-        );
-      
-      case 'ADMINISTRADOR':
-        // ADMINISTRADOR solo ve TESTIGO
-        return usuarios.filter(u => u.rol === 'TESTIGO');
-      
-      default:
-        // Por defecto no muestra nada
-        return [];
-    }
-  }
-
-  puedeModificar(usuario: Usuario): boolean {
-    switch (this.currentUserRole) {
-      case 'ROOT':
-        return true; // ROOT puede modificar a todos
-      
-      case 'CANDIDATO':
-        // CANDIDATO puede modificar ADMINISTRADOR y TESTIGO
-        return usuario.rol === 'ADMINISTRADOR' || usuario.rol === 'TESTIGO';
-      
-      case 'ADMINISTRADOR':
-        // ADMINISTRADOR puede modificar TESTIGO
-        return usuario.rol === 'TESTIGO';
-      
-      default:
-        return false;
-    }
-  }
-
-  activarInactivarAction(usuario: Usuario) {
+  listarAction(): void {
     if (this.isLoading()) return;
-
-    if (!this.puedeModificar(usuario)) {
-      alert('No tienes permisos para modificar este usuario');
-      return;
-    }
-
-    const accion = usuario.activo ? 'desactivar' : 'activar';
-    if (!confirm(`¿Está seguro de ${accion} este usuario?`)) {
-      return;
-    }
 
     this.isLoading.set(true);
     this.isError.set(false);
+    this.errorMessage.set(null);
 
-    usuario.activo = !usuario.activo;
+    this.usuarioService.listarUsuarios().subscribe({
+      next: (usuarios) => {
+        this.isLoading.set(false);
+        this.usuariosList.set(usuarios);
+      },
+      error: (error) => {
+        this.isLoading.set(false);
+        this.isError.set(true);
+        this.errorMessage.set(error.error?.mensaje || 'Error al cargar usuarios');
+        this.usuariosList.set([]);
+      }
+    });
+  }
 
-    this.usuarioService.activarInactivarUsuario(usuario).subscribe({
-      next: (usuariosResponse) => {
+  activarInactivarAction(usuario: Usuario): void {
+    if (this.isLoading()) return;
+
+    const accion = usuario.activo ? 'desactivar' : 'activar';
+    if (!confirm(`¿Está seguro de ${accion} al usuario "${usuario.nombre}"?`)) return;
+
+    this.isLoading.set(true);
+
+    this.usuarioService.activarInactivar(usuario.id!).subscribe({
+      next: () => {
         this.isLoading.set(false);
         this.listarAction();
       },
       error: (error) => {
         this.isLoading.set(false);
         this.isError.set(true);
-        this.errorMessage.set(error.error?.error || 'Error al actualizar usuario');
-        // Revertir el cambio si falla
-        usuario.activo = !usuario.activo;
+        this.errorMessage.set(error.error?.mensaje || 'Error al actualizar estado');
       }
     });
   }
-  editar(id: number): void {
-    this.router.navigate(['/synthax-votos/usuario/actualizar', id]);
-  }
 
+  editar(usuario: Usuario): void {
+    this.solicitudEditar.emit(usuario);
+  }
 }

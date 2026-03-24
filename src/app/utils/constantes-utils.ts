@@ -1,37 +1,33 @@
 export const API_ENDPOINTS = {
-  USUARIOS: 'usuarios',
-  USUARIOS_ROL_ACTIVOS: 'rolActivo',
-  DEPTOS: 'departamentos',
-  MPIOS: 'municipios',
-  ZONAS: 'zonas',
-  PUESTOS: 'puestos',
-  MESAS: 'mesas',
-  PARTIDOS: 'partidos',
-  CANDIDATO: 'candidato',
-  ASIGNACION_MESA: 'asignacionMesa',
-  VOTO: 'voto',
-  REPORTE_DINAMICO: 'reporteDinamico',
   AUTH: 'auth',
+  USUARIOS: 'usuarios',
+  PARTIDOS: 'partidos',
+  ANALISIS: 'analisis',
+  PICKS: 'picks',
 };
 
-export const ELECCION = {
-    PRESIDENTE: 'PRESIDENTE',
-    CONGRESISTA: 'CONGRESISTA',
-    REPRESENTANTE: 'REPRESENTANTE',
-    GOBERNADOR: 'GOBERNADOR',
-    DIPUTADO: 'DIPUTADO',
-    ALCALDE: 'ALCALDE',
-    CONCEJAL: 'CONCEJAL'
+export const NIVEL_CONFIANZA = {
+  MUY_ALTA: 'MUY_ALTA',
+  ALTA: 'ALTA',
+  MEDIA: 'MEDIA',
+  BAJA: 'BAJA',
 };
 
-export const LISTADOS = {
-  tipoEleccion: [
-    'PRESIDENTE',
-    'CONGRESISTA',
-    'REPRESENTANTE',
-    'GOBERNADOR',
-    'DIPUTADO',
-    'ALCALDE',
-    'CONCEJAL'
-  ]
+export const CATEGORIA_ANALISIS = {
+  RESULTADO:       'RESULTADO',
+  GOLES:           'GOLES',
+  MARCADOR_EXACTO: 'MARCADOR_EXACTO',
+  HANDICAP:        'HANDICAP',
+  CORNERS:         'CORNERS',
+  TARJETAS:        'TARJETAS',
+  TIROS:           'TIROS',
+  FALTAS:          'FALTAS',
+  JUGADOR:         'JUGADOR',
+};
+
+export const RESULTADO_PICK = {
+  PENDIENTE: 'PENDIENTE',
+  GANADO: 'GANADO',
+  PERDIDO: 'PERDIDO',
+  NULO: 'NULO',
 };

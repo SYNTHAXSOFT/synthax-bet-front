@@ -62,11 +62,6 @@ export class AuthService {
     return user ? user.id : null;
   }
 
-  getCandidatoId(): number | null {
-    const user = this.getCurrentUser();
-    return user && user.candidato ? user.candidato.id : null;
-  }
-
   getDefaultRouteByRole(): string {
     const user = this.getCurrentUser();
     if (!user) return '/';
@@ -74,13 +69,9 @@ export class AuthService {
     switch (user.rol) {
       case 'ROOT':
       case 'ADMINISTRADOR':
-        return '/synthax-votos/inicio';
-      case 'CANDIDATO':
-        return '/synthax-votos/inicio';
-      case 'TESTIGO':
-        return '/synthax-votos/inicio';
+        return '/statbet/inicio';
       default:
-        return '/synthax-votos';
+        return '/statbet/inicio';
     }
   }
 }

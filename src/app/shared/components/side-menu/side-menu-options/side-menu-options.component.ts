@@ -33,7 +33,7 @@ export class SideMenuOptionsComponent {
   .filter((item) => item.path && item.path !== '**' && !item.redirectTo)
   .filter((item) => item.path !== 'notificaciones')
   .map((item) => ({
-    route: `synthax-votos/${item.path}`,
+    route: `statbet/${item.path}`,
     title: `${item.title}`,
     roles: item.data?.['roles'] as string[],
   }));
@@ -64,17 +64,13 @@ export class SideMenuOptionsComponent {
   getIconForRoute(name: string): string {
     const lowerName = name.toLowerCase();
 
-    if (lowerName.includes('usuario')) return 'fa-solid fa-users';
-    if (lowerName.includes('candidato')) return 'fa-solid fa-user-tie';
-    if (lowerName.includes('votación') || lowerName.includes('voto')) return 'fa-solid fa-check-to-slot';
-    if (lowerName.includes('resultado')) return 'fa-solid fa-chart-pie';
-    if (lowerName.includes('mesa')) return 'fa-solid fa-table';
-    if (lowerName.includes('departamento')) return 'fa-solid fa-map-location-dot';
-    if (lowerName.includes('municipio')) return 'fa-solid fa-city';
-    if (lowerName.includes('zona')) return 'fa-solid fa-map-location-dot';
-    if (lowerName.includes('puesto')) return 'fa-solid fa-building';
-    if (lowerName.includes('partido')) return 'fa-solid fa-handshake';
     if (lowerName.includes('inicio')) return 'fa-solid fa-house';
+    if (lowerName.includes('partido')) return 'fa-solid fa-futbol';
+    if (lowerName.includes('análisis') || lowerName.includes('analisis')) return 'fa-solid fa-chart-line';
+    if (lowerName.includes('personalizar')) return 'fa-solid fa-sliders';
+    if (lowerName.includes('sugerencia')) return 'fa-solid fa-lightbulb';
+    if (lowerName.includes('pick')) return 'fa-solid fa-bullseye';
+    if (lowerName.includes('usuario')) return 'fa-solid fa-users';
     if (lowerName.includes('notificaciones')) return 'fa-solid fa-bell';
 
     return 'fa-solid fa-circle-dot'; // icono por defecto

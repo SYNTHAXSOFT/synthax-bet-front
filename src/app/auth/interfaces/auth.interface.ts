@@ -1,22 +1,20 @@
 export enum Rol {
   ROOT = 'ROOT',
-  ADMINISTRADOR = 'ADMINISTRADOR',
-  CANDIDATO = 'CANDIDATO',
-  TESTIGO = 'TESTIGO'
+  ADMINISTRADOR = 'ADMINISTRADOR'
 }
 
-export interface LoginRequest {  // 👈 Asegúrate que tenga export
-  cedula: string;
+export interface LoginRequest {
+  email: string;
   password: string;
 }
 
-export interface LoginResponse {  // 👈 Asegúrate que tenga export
+export interface LoginResponse {
   usuario: {
     id: number;
     nombre: string;
-    apellido: string;
     email: string;
-    rol: string;  // o Rol si prefieres usar el enum
+    rol: string;
+    activo: boolean;
   };
   token: string;
   mensaje: string;

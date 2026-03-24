@@ -1,30 +1,24 @@
 import { Routes } from "@angular/router";
-import { ListarPage } from "./pages/usuario-listar/usuario-listar"
-import { RegistrarPage } from "./pages/usuario-registrar/usuario-registrar"
-import { ActualizarUsuarioPageComponent } from "./pages/usuario-actualizar/usuario-actualizar"
+import { ListarPage } from "./pages/usuario-listar/usuario-listar";
+import { RegistrarPage } from "./pages/usuario-registrar/usuario-registrar";
 
 export const usuarioRoutes: Routes = [
   {
     path: '',
-    children:[
+    children: [
       {
         path: 'registrar',
-        title: 'Registrar',
-        component: RegistrarPage
+        title: 'Usuarios',
+        component: RegistrarPage,
       },
       {
         path: 'listar',
-        title: 'Listar',
-        component: ListarPage
-      },
-     {
-      path: 'actualizar/:id',
-      title: 'Actualizar',
-      component: ActualizarUsuarioPageComponent
+        title: 'Listar usuarios',
+        component: ListarPage,
       },
       {
         path: '**',
-        redirectTo: 'registrar'
+        redirectTo: 'registrar',
       }
     ]
   },
@@ -32,4 +26,4 @@ export const usuarioRoutes: Routes = [
     path: '**',
     redirectTo: ''
   }
-]
+];

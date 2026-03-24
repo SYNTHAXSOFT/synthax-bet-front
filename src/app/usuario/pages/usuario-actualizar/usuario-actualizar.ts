@@ -13,24 +13,17 @@ import { Usuario } from '../../interfaces/usuario.interface';
 })
 export class ActualizarUsuarioPageComponent implements OnInit {
 
-  selectedRol = '';
-  selectedCandidato = '';
-  candidatos: any[] = [];
+  rolesDisponibles: string[] = ['ROOT', 'ADMINISTRADOR'];
+
   usuario: Usuario = {
-    
     nombre:   '',
-    apellido: '',
     email:    '',
     password: '',
     rol:      '',
-    cedula:   '',
-    candidato: {id: ''},
-    activo: true
-   
+    activo:   true,
   };
 
   cargando = true;
-  
   usuarioId: number = 0;
 
   constructor(
@@ -40,53 +33,42 @@ export class ActualizarUsuarioPageComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    
     const idParam = this.route.snapshot.paramMap.get('id');
     this.usuarioId = idParam ? Number(idParam) : 0;
     this.cargarUsuario();
-    this.cargarCandidatos();
   }
 
-  cargarCandidatos(){
-      this.usuarioService.listarCandidatos().subscribe(data => {
-      this.candidatos = data;
-    });
-  }
-  cargarUsuario() {
+  cargarUsuario(): void {
     this.usuarioService.obtenerPorId(this.usuarioId).subscribe({
       next: (data) => {
         this.usuario = data;
         this.cargando = false;
-
-        if (!this.usuario.candidato) {
-        this.usuario.candidato = { id: '', nombre: '' };
-      }
       },
-      error: (error) => {
+      error: () => {
         alert('Error al cargar el usuario');
-        this.router.navigate(['synthax-votos/usuario/listar']);
+        this.router.navigate(['/statbet/usuario/listar']);
       }
     });
   }
 
-  actualizarUsuario() {
-    if (!this.usuario.nombre) {
-      alert('Debe completar todos los campos');
+  actualizarUsuario(): void {
+    if (!this.usuario.nombre || !this.usuario.email || !this.usuario.rol) {
+      alert('Debe completar todos los campos obligatorios');
       return;
     }
-    this.usuario.candidato.id = this.selectedCandidato;
+
     this.usuarioService.actualizar(this.usuarioId, this.usuario).subscribe({
       next: () => {
         alert('Usuario actualizado exitosamente');
-        this.router.navigate(['synthax-votos/usuario/actualizar']);
+        this.router.navigate(['/statbet/usuario/listar']);
       },
       error: (err) => {
-        alert('Error al actualizar el usuario');
+        alert('Error al actualizar el usuario: ' + (err.error?.mensaje || 'Error desconocido'));
       }
     });
   }
 
-  cancelar() {
-    this.router.navigate(['synthax-votos/usuario/registrar']);
+  cancelar(): void {
+    this.router.navigate(['/statbet/usuario/listar']);
   }
 }

@@ -1,0 +1,177 @@
+<div class="container-fluid px-4">
+
+  <!-- Cabecera -->
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <div>
+      <h2 class="mb-0">Sugerencias del día</h2>
+      <p class="text-muted small mb-0">Combinadas generadas por el motor de análisis</p>
+    </div>
+    <button class="btn btn-outline-primary btn-sm" (click)="cargar()" [disabled]="cargando">
+      <i class="fa-solid fa-rotate-right me-1"></i>
+      {{ cargando ? 'Cargando...' : 'Actualizar' }}
+    </button>
+  </div>
+  <hr class="mb-4">
+
+  <!-- Cargando -->
+  @if (cargando) {
+    <div class="d-flex justify-content-center align-items-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (!cargando && error) {
+    <div class="alert alert-warning d-flex align-items-center gap-2">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>{{ error }}</span>
+    </div>
+  }
+
+  @if (!cargando && !error) {
+
+    <!-- Sin sugerencias -->
+    @if (sugerencias.length === 0) {
+      <div class="text-center py-5 text-muted">
+        <i class="fa-solid fa-magnifying-glass fs-1 mb-3 d-block"></i>
+        <p class="fs-5">No hay sugerencias disponibles para hoy.</p>
+        <p class="small">Asegúrate de haber ejecutado el análisis del día desde el módulo de Análisis.</p>
+      </div>
+    }
+
+    <!-- Sugerencia del día (destacada) -->
+    @if (sugerenciaDelDia) {
+      <div class="card border-0 shadow mb-4" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);">
+        <div class="card-body p-4 text-white">
+
+          <div class="d-flex align-items-center gap-2 mb-3">
+            <i class="fa-solid fa-star text-warning fs-4"></i>
+            <h4 class="mb-0 fw-bold">Apuesta sugerida del día</h4>
+            <span [class]="getBadgeTipo(sugerenciaDelDia.tipo)" class="ms-auto fs-6">
+              <i [class]="getIconoTipo(sugerenciaDelDia.tipo)" class="me-1"></i>
+              {{ sugerenciaDelDia.tipo }}
+            </span>
+          </div>
+
+          <!-- Métricas principales -->
+          <div class="row g-3 mb-4">
+
+            <!-- Confianza promedio — MÉTRICA PRINCIPAL -->
+            <div class="col-6 col-md-3">
+              <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15)">
+                <div class="fs-2 fw-bold" [style.color]="getColorConfianza(sugerenciaDelDia.confianzaPromedio)">
+                  {{ probabilidadPct(sugerenciaDelDia.confianzaPromedio) }}
+                </div>
+                <div class="small opacity-75">Confianza por pata</div>
+                <div class="mt-1">
+                  <span class="badge rounded-pill" [style.background]="getBgConfianza(sugerenciaDelDia.confianzaPromedio)" style="font-size:0.65rem">
+                    {{ getLabelConfianza(sugerenciaDelDia.confianzaPromedio) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cuota combinada -->
+            <div class="col-6 col-md-3">
+              <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.1)">
+                <div class="fs-2 fw-bold text-warning">{{ sugerenciaDelDia.cuotaCombinada | number:'1.2-2' }}</div>
+                <div class="small opacity-75">Cuota combinada</div>
+              </div>
+            </div>
+
+            <!-- Prob. combinada -->
+            <div class="col-6 col-md-3">
+              <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.1)">
+                <div class="fs-2 fw-bold text-info">{{ probabilidadPct(sugerenciaDelDia.probabilidadCombinada) }}</div>
+                <div class="small opacity-75">Prob. combinada</div>
+              </div>
+            </div>
+
+            <!-- Núm. selecciones -->
+            <div class="col-6 col-md-3">
+              <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.1)">
+                <div class="fs-2 fw-bold">{{ sugerenciaDelDia.selecciones.length }}</div>
+                <div class="small opacity-75">Selección(es)</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Selecciones -->
+          <div class="d-flex flex-column gap-2">
+            @for (linea of sugerenciaDelDia.selecciones; track linea.idPartido) {
+              <div class="p-3 rounded d-flex flex-wrap align-items-center gap-2" style="background: rgba(255,255,255,0.08)">
+                <div class="flex-fill">
+                  <div class="fw-bold">{{ linea.partido }}</div>
+                  <div class="small opacity-75">{{ linea.liga }}</div>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <span [class]="getBadgeCategoria(linea.categoria)">{{ getLabelCategoria(linea.categoria) }}</span>
+                  <span class="badge bg-light text-dark fw-semibold">{{ linea.mercado }}</span>
+                  <span class="fw-bold" [style.color]="getColorConfianza(linea.probabilidad)">
+                    {{ probabilidadPct(linea.probabilidad) }}
+                  </span>
+                  <span class="badge rounded-pill text-bg-warning fw-bold">@{{ linea.cuota | number:'1.2-2' }}</span>
+                </div>
+              </div>
+            }
+          </div>
+
+        </div>
+      </div>
+    }
+
+    <!-- Otras sugerencias -->
+    @if (restoSugerencias.length > 0) {
+      <h5 class="text-muted mb-3">Otras combinadas recomendadas</h5>
+      <div class="row g-3">
+        @for (sug of restoSugerencias; track sug.descripcion) {
+          <div class="col-12 col-md-6 col-xl-4">
+            <div class="card h-100 border shadow-sm">
+
+              <!-- Header de tarjeta -->
+              <div class="card-header d-flex align-items-center justify-content-between py-2">
+                <div class="d-flex align-items-center gap-2">
+                  <i [class]="getIconoTipo(sug.tipo) + ' text-primary'"></i>
+                  <span class="fw-semibold">{{ sug.tipo }}</span>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                  <!-- Confianza promedio (métrica de calidad) -->
+                  <span class="badge rounded-pill"
+                        [style.background]="getBgConfianza(sug.confianzaPromedio)"
+                        title="Confianza promedio por pata">
+                    {{ probabilidadPct(sug.confianzaPromedio) }}
+                  </span>
+                  <span class="badge rounded-pill text-bg-warning fw-bold">@{{ sug.cuotaCombinada | number:'1.2-2' }}</span>
+                </div>
+              </div>
+
+              <!-- Body: selecciones -->
+              <div class="card-body p-0">
+                @for (linea of sug.selecciones; track linea.idPartido) {
+                  <div class="p-3 border-bottom">
+                    <div class="fw-semibold small">{{ linea.partido }}</div>
+                    <div class="text-muted" style="font-size: 0.75rem">{{ linea.liga }}</div>
+                    <div class="d-flex flex-wrap gap-1 mt-1 align-items-center">
+                      <span [class]="getBadgeCategoria(linea.categoria)" style="font-size: 0.7rem">{{ getLabelCategoria(linea.categoria) }}</span>
+                      <span class="text-dark fw-semibold small">{{ linea.mercado }}</span>
+                      <span class="ms-auto fw-bold small" [style.color]="getColorConfianza(linea.probabilidad)">
+                        {{ probabilidadPct(linea.probabilidad) }}
+                      </span>
+                      <span class="badge rounded-pill bg-light text-dark border fw-bold">@{{ linea.cuota | number:'1.2-2' }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  }
+
+</div>

@@ -1,0 +1,331 @@
+<div class="container-fluid px-4">
+
+  <!-- Cabecera -->
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <div>
+      <h2 class="mb-0">Personalizar Sugerencias</h2>
+      <p class="text-muted small mb-0">Configura los filtros y genera combinadas a tu medida</p>
+    </div>
+    <button class="btn btn-outline-secondary btn-sm" (click)="limpiar()">
+      <i class="fa-solid fa-broom me-1"></i> Limpiar filtros
+    </button>
+  </div>
+  <hr class="mb-4">
+
+  <!-- Panel de filtros -->
+  <div class="card border shadow-sm mb-4">
+    <div class="card-header py-2">
+      <i class="fa-solid fa-sliders me-2 text-primary"></i>
+      <span class="fw-semibold">Filtros</span>
+    </div>
+    <div class="card-body">
+      <div class="row g-4">
+
+        <!-- Rango de probabilidad -->
+        <div class="col-12 col-md-6 col-xl-3">
+          <label class="form-label fw-semibold">
+            <i class="fa-solid fa-percent me-1 text-muted"></i>
+            Probabilidad mínima
+          </label>
+          <div class="d-flex align-items-center gap-2">
+            <input type="range" class="form-range flex-fill"
+                   min="30" max="95" step="5"
+                   [(ngModel)]="filtro.probMinima">
+            <span class="badge bg-primary fs-6 fw-bold" style="min-width:48px">
+              {{ filtro.probMinima }}%
+            </span>
+          </div>
+          <div class="d-flex justify-content-between" style="font-size:0.7rem; color:#aaa">
+            <span>30%</span><span>95%</span>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+          <label class="form-label fw-semibold">
+            <i class="fa-solid fa-percent me-1 text-muted"></i>
+            Probabilidad máxima
+          </label>
+          <div class="d-flex align-items-center gap-2">
+            <input type="range" class="form-range flex-fill"
+                   min="30" max="100" step="5"
+                   [(ngModel)]="filtro.probMaxima">
+            <span class="badge bg-secondary fs-6 fw-bold" style="min-width:48px">
+              {{ filtro.probMaxima }}%
+            </span>
+          </div>
+          <div class="d-flex justify-content-between" style="font-size:0.7rem; color:#aaa">
+            <span>30%</span><span>100%</span>
+          </div>
+        </div>
+
+        <!-- Cuota mínima combinada -->
+        <div class="col-12 col-md-6 col-xl-3">
+          <label class="form-label fw-semibold">
+            <i class="fa-solid fa-coins me-1 text-muted"></i>
+            Cuota mínima combinada
+          </label>
+          <div class="input-group">
+            <span class="input-group-text">@</span>
+            <input type="number" class="form-control"
+                   min="1.10" max="20.00" step="0.10"
+                   [(ngModel)]="filtro.cuotaMinimaTotal"
+                   placeholder="1.80">
+          </div>
+          <div class="form-text">Mínimo recomendado: 1.80</div>
+        </div>
+
+        <!-- Buscar liga (select buscable) -->
+        <div class="col-12 col-md-6 col-xl-3">
+          <label class="form-label fw-semibold">
+            <i class="fa-solid fa-earth-americas me-1 text-muted"></i>
+            Liga (opcional)
+          </label>
+
+          <!-- Contenedor relativo para posicionar el dropdown -->
+          <div class="position-relative">
+
+            <div class="input-group">
+              <span class="input-group-text"><i class="fa-solid fa-trophy"></i></span>
+              <input type="text"
+                     class="form-control"
+                     [class.border-primary]="ligaSeleccionada"
+                     [(ngModel)]="ligaTexto"
+                     (input)="onLigaInput()"
+                     (focus)="onLigaFocus()"
+                     placeholder="Buscar liga..."
+                     autocomplete="off">
+              <!-- Botón limpiar (solo visible si hay texto) -->
+              @if (ligaTexto) {
+                <button type="button" class="btn btn-outline-secondary"
+                        (click)="limpiarLiga()" title="Limpiar">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              }
+            </div>
+
+            <!-- Dropdown de resultados -->
+            @if (mostrarDropdownLiga && ligasFiltradas.length > 0) {
+              <div class="position-absolute w-100 border rounded bg-white shadow-sm"
+                   style="z-index:1050; max-height:220px; overflow-y:auto; top:calc(100% + 2px)">
+                @for (liga of ligasFiltradas; track liga) {
+                  <button type="button"
+                          class="d-block w-100 text-start px-3 py-2 border-0 bg-transparent"
+                          [class.bg-primary]="liga === ligaSeleccionada"
+                          [class.text-white]="liga === ligaSeleccionada"
+                          style="font-size:0.9rem; cursor:pointer"
+                          (mousedown)="seleccionarLiga(liga)">
+                    <i class="fa-solid fa-flag me-2 opacity-50"></i>{{ liga }}
+                  </button>
+                }
+              </div>
+            }
+
+            <!-- Mensaje si no hay coincidencias -->
+            @if (mostrarDropdownLiga && ligaTexto && ligasFiltradas.length === 0) {
+              <div class="position-absolute w-100 border rounded bg-white shadow-sm px-3 py-2 text-muted small"
+                   style="z-index:1050; top:calc(100% + 2px)">
+                <i class="fa-solid fa-circle-info me-1"></i>
+                No se encontró "{{ ligaTexto }}"
+              </div>
+            }
+
+          </div>
+
+          <div class="form-text">
+            @if (ligaSeleccionada) {
+              <span class="text-primary fw-semibold">
+                <i class="fa-solid fa-check me-1"></i>{{ ligaSeleccionada }}
+              </span>
+            } @else {
+              Todas las patas serán de esa liga
+            }
+          </div>
+        </div>
+
+        <!-- Buscar equipo -->
+        <div class="col-12 col-md-6 col-xl-3">
+          <label class="form-label fw-semibold">
+            <i class="fa-solid fa-shield-halved me-1 text-muted"></i>
+            Equipo (opcional)
+          </label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+            <input type="text" class="form-control"
+                   [(ngModel)]="filtro.equipoBuscado"
+                   placeholder="ej: Real Madrid, Arsenal...">
+          </div>
+          <div class="form-text">Al menos una pata incluirá este equipo</div>
+        </div>
+
+        <!-- Tipo de apuesta -->
+        <div class="col-12 col-md-6 col-xl-4">
+          <label class="form-label fw-semibold">
+            <i class="fa-solid fa-layer-group me-1 text-muted"></i>
+            Tipo de apuesta
+          </label>
+          <div class="btn-group w-100" role="group">
+            <input type="radio" class="btn-check" name="tipo" id="tipo-todos" value=""
+                   [(ngModel)]="filtro.tipoApuesta">
+            <label class="btn btn-outline-secondary" for="tipo-todos">
+              <i class="fa-solid fa-asterisk me-1"></i>Todos
+            </label>
+
+            <input type="radio" class="btn-check" name="tipo" id="tipo-simple" value="Simple"
+                   [(ngModel)]="filtro.tipoApuesta">
+            <label class="btn btn-outline-primary" for="tipo-simple">
+              <i class="fa-solid fa-circle-check me-1"></i>Simple
+            </label>
+
+            <input type="radio" class="btn-check" name="tipo" id="tipo-doble" value="Doble"
+                   [(ngModel)]="filtro.tipoApuesta">
+            <label class="btn btn-outline-warning" for="tipo-doble">
+              <i class="fa-solid fa-layer-group me-1"></i>Doble
+            </label>
+
+            <input type="radio" class="btn-check" name="tipo" id="tipo-triple" value="Triple"
+                   [(ngModel)]="filtro.tipoApuesta">
+            <label class="btn btn-outline-danger" for="tipo-triple">
+              <i class="fa-solid fa-trophy me-1"></i>Triple
+            </label>
+          </div>
+        </div>
+
+        <!-- Categorías -->
+        <div class="col-12 col-md-6 col-xl-8">
+          <label class="form-label fw-semibold">
+            <i class="fa-solid fa-tags me-1 text-muted"></i>
+            Categorías
+            <span class="text-muted fw-normal small ms-1">(sin selección = todas)</span>
+          </label>
+          <div class="d-flex flex-wrap gap-2">
+            @for (cat of categoriaOpciones; track cat.valor) {
+              <button type="button"
+                      [class]="categoriaSeleccionada(cat.valor)
+                        ? 'btn btn-sm btn-primary'
+                        : 'btn btn-sm btn-outline-secondary'"
+                      (click)="toggleCategoria(cat.valor)">
+                <i [class]="cat.icono + ' me-1'"></i>
+                {{ cat.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Botón buscar -->
+      <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+        <button class="btn btn-primary px-5"
+                (click)="buscar()"
+                [disabled]="cargando">
+          @if (cargando) {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+            Buscando...
+          } @else {
+            <i class="fa-solid fa-wand-magic-sparkles me-2"></i>
+            Generar sugerencias
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── Resultados ───────────────────────────────────────────────────── -->
+
+  @if (cargando) {
+    <div class="d-flex justify-content-center align-items-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+  }
+
+  @if (!cargando && error) {
+    <div class="alert alert-warning d-flex align-items-center gap-2">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      <span>{{ error }}</span>
+    </div>
+  }
+
+  @if (!cargando && !error && buscado) {
+
+    @if (resultados.length === 0) {
+      <div class="text-center py-5 text-muted">
+        <i class="fa-solid fa-filter-circle-xmark fs-1 mb-3 d-block"></i>
+        <p class="fs-5">No se encontraron combinadas con esos filtros.</p>
+        <p class="small">Prueba ampliando el rango de probabilidad, bajando la cuota mínima o quitando el filtro de equipo.</p>
+      </div>
+    }
+
+    @if (resultados.length > 0) {
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="mb-0 text-muted">
+          <i class="fa-solid fa-list-check me-2"></i>
+          {{ resultados.length }} combinada{{ resultados.length !== 1 ? 's' : '' }} encontrada{{ resultados.length !== 1 ? 's' : '' }}
+        </h5>
+      </div>
+
+      <div class="row g-3">
+        @for (sug of resultados; track $index) {
+          <div class="col-12 col-lg-6">
+            <div class="card h-100 border shadow-sm">
+
+              <!-- Header -->
+              <div class="card-header d-flex align-items-center justify-content-between py-2">
+                <div class="d-flex align-items-center gap-2">
+                  <i [class]="getIconoTipo(sug.tipo) + ' text-primary'"></i>
+                  <span [class]="getBadgeTipo(sug.tipo)">{{ sug.tipo }}</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <!-- Confianza promedio por pata -->
+                  <span class="badge rounded-pill fw-bold"
+                        [style.background]="getBgConfianza(sug.confianzaPromedio)"
+                        title="Confianza promedio por pata">
+                    {{ probabilidadPct(sug.confianzaPromedio) }}
+                  </span>
+                  <span class="badge rounded-pill text-bg-warning fs-6 fw-bold">
+                    @{{ sug.cuotaCombinada | number:'1.2-2' }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Barra visual de cuota -->
+              <div class="progress" style="height:4px; border-radius:0">
+                <div class="progress-bar"
+                     [class]="getColorBarraCuota(sug.cuotaCombinada)"
+                     [style.width]="getAnchoBarra(sug.cuotaCombinada)">
+                </div>
+              </div>
+
+              <!-- Selecciones -->
+              <div class="card-body p-0">
+                @for (linea of sug.selecciones; track linea.idPartido) {
+                  <div class="p-3 border-bottom">
+                    <div class="fw-semibold">{{ linea.partido }}</div>
+                    <div class="text-muted small">{{ linea.liga }}</div>
+                    <div class="d-flex flex-wrap gap-1 mt-2 align-items-center">
+                      <span [class]="getBadgeCategoria(linea.categoria)" style="font-size:0.7rem">
+                        {{ getLabelCategoria(linea.categoria) }}
+                      </span>
+                      <span class="fw-semibold small text-dark">{{ linea.mercado }}</span>
+                      <span class="ms-auto d-flex align-items-center gap-1">
+                        <span class="fw-bold small" [style.color]="getBgConfianza(linea.probabilidad)">{{ probabilidadPct(linea.probabilidad) }}</span>
+                        <span class="badge rounded-pill bg-light text-dark border fw-bold">
+                          @{{ linea.cuota | number:'1.2-2' }}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                }
+              </div>
+
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  }
+
+</div>

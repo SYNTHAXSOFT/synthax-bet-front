@@ -1,0 +1,192 @@
+<div class="container-fluid px-4">
+
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h2>Análisis del día</h2>
+    @if (esAdmin) {
+      <button
+        class="btn btn-primary btn-sm"
+        (click)="ejecutarAnalisis()"
+        [disabled]="ejecutando"
+      >
+        @if (ejecutando) {
+          <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+        }
+        {{ ejecutando ? 'Calculando...' : 'Ejecutar análisis' }}
+      </button>
+    }
+  </div>
+  <hr class="mb-3">
+
+  <!-- Panel de filtros -->
+  <div class="card mb-4">
+    <div class="card-body py-3">
+      <div class="row g-3 align-items-end">
+
+        <!-- Categoría -->
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-semibold mb-1">Categoría</label>
+          <select
+            class="form-select form-select-sm"
+            [(ngModel)]="categoriaFiltro"
+            (change)="aplicarFiltros()"
+          >
+            <option value="">Todas las categorías</option>
+            @for (cat of categorias; track cat) {
+              <option [value]="cat">{{ getLabelCategoria(cat) }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Confianza -->
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-semibold mb-1">Nivel de confianza</label>
+          <select
+            class="form-select form-select-sm"
+            [(ngModel)]="confianzaFiltro"
+            (change)="aplicarFiltros()"
+          >
+            <option value="">Todos los niveles</option>
+            @for (nivel of nivelesConfianza; track nivel) {
+              <option [value]="nivel">{{ nivel }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Probabilidad mínima -->
+        <div class="col-12 col-md-2">
+          <label class="form-label small fw-semibold mb-1">Probabilidad mínima</label>
+          <select
+            class="form-select form-select-sm"
+            [(ngModel)]="probabilidadMinima"
+            (change)="aplicarFiltros()"
+          >
+            @for (op of opcionesProbabilidad; track op.valor) {
+              <option [value]="op.valor">{{ op.label }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Equipo (búsqueda) -->
+        <div class="col-12 col-md-2">
+          <label class="form-label small fw-semibold mb-1">Buscar equipo</label>
+          <input
+            type="text"
+            class="form-control form-control-sm"
+            placeholder="Ej: Nacional..."
+            [(ngModel)]="equipoFiltro"
+            (input)="aplicarFiltros()"
+          />
+        </div>
+
+        <!-- Mercado (búsqueda) -->
+        <div class="col-12 col-md-2">
+          <label class="form-label small fw-semibold mb-1">Buscar mercado</label>
+          <input
+            type="text"
+            class="form-control form-control-sm"
+            placeholder="Ej: más de 2.5..."
+            [(ngModel)]="mercadoFiltro"
+            (input)="aplicarFiltros()"
+          />
+        </div>
+
+        <!-- Botón limpiar -->
+        <div class="col-12 col-md-1 d-flex align-items-end">
+          <button
+            class="btn btn-secondary btn-sm w-100"
+            (click)="limpiarFiltros()"
+            [disabled]="!hayFiltrosActivos"
+            title="Limpiar filtros"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Contador de resultados -->
+      @if (totalCompleto > 0) {
+        <div class="mt-2 pt-2 border-top">
+          <small class="text-muted">
+            Mostrando
+            <span class="fw-semibold" [class.text-primary]="hayFiltrosActivos">
+              {{ totalFiltrado }}
+            </span>
+            de
+            <span class="fw-semibold">{{ totalCompleto }}</span>
+            análisis
+            @if (hayFiltrosActivos) {
+              <span class="text-primary"> · filtros activos</span>
+            }
+          </small>
+        </div>
+      }
+
+    </div>
+  </div>
+
+  @if (cargando) {
+    <div class="d-flex justify-content-center align-items-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+    </div>
+  }
+
+  @if (!cargando) {
+    <div class="table-responsive">
+      <table class="table table-striped table-hover table-bordered">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Partido</th>
+            <th scope="col">Categoría</th>
+            <th scope="col">Mercado</th>
+            <th scope="col">Probabilidad</th>
+            <th scope="col">Confianza</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (analisis of analisisList; track analisis.id) {
+            <tr>
+              <td class="small">
+                <span class="fw-semibold">{{ analisis.partido.equipoLocal }}</span>
+                <span class="text-muted"> vs </span>
+                <span class="fw-semibold">{{ analisis.partido.equipoVisitante }}</span>
+              </td>
+              <td>
+                <span [class]="getBadgeCategoria(analisis.categoriaMercado)">
+                  {{ getLabelCategoria(analisis.categoriaMercado) }}
+                </span>
+              </td>
+              <td class="small">{{ analisis.nombreMercado }}</td>
+              <td>
+                <span class="fw-semibold">{{ (analisis.probabilidad * 100).toFixed(1) }}%</span>
+              </td>
+              <td>
+                <span [class]="getBadgeConfianza(analisis.nivelConfianza)">
+                  {{ analisis.nivelConfianza ?? '—' }}
+                </span>
+              </td>
+            </tr>
+          }
+          @empty {
+            <tr>
+              <td colspan="5" class="text-center text-muted py-4">
+                @if (hayFiltrosActivos) {
+                  Ningún análisis coincide con los filtros aplicados.
+                  <button class="btn btn-link btn-sm p-0 ms-1" (click)="limpiarFiltros()">Limpiar filtros</button>
+                } @else {
+                  No hay análisis disponibles para hoy.
+                  @if (esAdmin) {
+                    Use el botón <strong>Ejecutar análisis</strong>.
+                  }
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>

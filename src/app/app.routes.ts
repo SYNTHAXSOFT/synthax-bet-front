@@ -10,7 +10,7 @@ export const routes: Routes = [
   },
 
   {
-    path: 'synthax-votos',
+    path: 'statbet',
     loadComponent: () =>
       import('./shared/pages/dashboard-page/dashboard-page.component'),
     canActivate: [AuthGuard],
@@ -31,32 +31,67 @@ export const routes: Routes = [
       },
 
       {
+        path: 'partidos',
+        title: 'Partidos',
+        loadChildren: () =>
+          import('./partidos/partidos.routes').then(
+            (m) => m.partidosRoutes
+          ),
+        canActivate: [RoleGuard],
+        data: { roles: ['ROOT', 'ADMINISTRADOR'] },
+      },
+
+      {
+        path: 'analisis',
+        title: 'Análisis',
+        loadChildren: () =>
+          import('./analisis/analisis.routes').then(
+            (m) => m.analisisRoutes
+          ),
+        canActivate: [RoleGuard],
+        data: { roles: ['ROOT', 'ADMINISTRADOR'] },
+      },
+
+      {
+        path: 'sugerencias',
+        title: 'Sugerencias',
+        loadChildren: () =>
+          import('./sugerencias/sugerencias.routes').then(
+            (m) => m.sugerenciasRoutes
+          ),
+        canActivate: [RoleGuard],
+        data: { roles: ['ROOT', 'ADMINISTRADOR'] },
+      },
+
+      {
+        path: 'personalizar-sugerencias',
+        title: 'Personalizar Sugerencias',
+        loadComponent: () =>
+          import('./sugerencias/pages/personalizar-sugerencias/personalizar-sugerencias').then(
+            (m) => m.PersonalizarSugerenciasPage
+          ),
+        canActivate: [RoleGuard],
+        data: { roles: ['ROOT', 'ADMINISTRADOR'] },
+      },
+
+      {
+        path: 'picks',
+        title: 'Picks',
+        loadChildren: () =>
+          import('./picks/picks.routes').then(
+            (m) => m.picksRoutes
+          ),
+        canActivate: [RoleGuard],
+        data: { roles: ['ROOT', 'ADMINISTRADOR'] },
+      },
+
+      {
         path: 'usuario',
-        title: 'Usuario',
+        title: 'Usuarios',
         loadChildren: () =>
           import('./usuario/usuario.routes').then(
             (modulo) => modulo.usuarioRoutes
           ),
-        canActivate: [RoleGuard],
-        data: { roles: ['ROOT', 'ADMINISTRADOR', 'CANDIDATO'] },
-      },
-
-      {
-        path: 'departamento',
-        title: 'Departamento',
-        loadChildren: () =>
-          import('./departamento/departamento.routes').then(
-            (m) => m.departamentoRoutes
-          ),
-        canActivate: [RoleGuard],
-        data: { roles: ['ROOT'] },
-      },
-      
-      {
-        path: 'municipio',
-        title: 'Municipio',
-        loadChildren: () =>
-          import('./municipio/municipio.routes').then((m) => m.municipioRoutes),
         canActivate: [RoleGuard],
         data: { roles: ['ROOT'] },
       },
