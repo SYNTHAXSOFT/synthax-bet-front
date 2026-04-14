@@ -4,6 +4,7 @@ export const API_ENDPOINTS = {
   PARTIDOS: 'partidos',
   ANALISIS: 'analisis',
   PICKS: 'picks',
+  CUOTAS: 'cuotas',
 };
 
 export const NIVEL_CONFIANZA = {

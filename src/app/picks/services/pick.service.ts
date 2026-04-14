@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Pick, CrearPickRequest } from '../interfaces/pick.interface';
+import { Pick, CrearPickRequest, EstadisticasPick, RendimientoResolucion } from '../interfaces/pick.interface';
 import { API_ENDPOINTS } from '../../utils/constantes-utils';
 import { environment } from '../../../environments/environment';
 
@@ -31,6 +31,19 @@ export class PickService {
   }
 
   liquidar(id: number, resultado: string): Observable<Pick> {
-    return this.http.patch<Pick>(`${environment.URL}/${API_ENDPOINTS.PICKS}/${id}/liquidar`, { resultado });
+    return this.http.patch<Pick>(
+      `${environment.URL}/${API_ENDPOINTS.PICKS}/${id}/liquidar`,
+      { resultado }
+    );
+  }
+
+  estadisticas(): Observable<EstadisticasPick> {
+    return this.http.get<EstadisticasPick>(`${environment.URL}/${API_ENDPOINTS.PICKS}/estadisticas`);
+  }
+
+  resolverPendientes(): Observable<RendimientoResolucion> {
+    return this.http.post<RendimientoResolucion>(
+      `${environment.URL}/${API_ENDPOINTS.PICKS}/resolver-pendientes`, {}
+    );
   }
 }

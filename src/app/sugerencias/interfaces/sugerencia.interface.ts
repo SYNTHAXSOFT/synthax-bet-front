@@ -6,6 +6,8 @@ export interface SugerenciaLinea {
   mercado:      string;
   probabilidad: number;
   cuota:        number;
+  edge?:        number;
+  cuotaReal?:   boolean;
 }
 
 export interface Sugerencia {

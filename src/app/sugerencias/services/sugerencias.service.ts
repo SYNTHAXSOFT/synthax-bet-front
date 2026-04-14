@@ -20,4 +20,8 @@ export class SugerenciasService {
   obtenerLigas(): Observable<string[]> {
     return this.http.get<string[]>(`${this.base}/ligas`);
   }
+
+  obtenerEquipos(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.base}/equipos`);
+  }
 }

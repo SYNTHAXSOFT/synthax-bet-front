@@ -18,3 +18,11 @@ export interface FiltroAnalisis {
   probabilidadMinima?: number;
   categoria?: string;
 }
+
+export interface LigaDisponible {
+  idLigaApi: string;
+  nombre: string;
+  pais: string;
+  partidosHoy: number;
+  favorita: boolean;
+}

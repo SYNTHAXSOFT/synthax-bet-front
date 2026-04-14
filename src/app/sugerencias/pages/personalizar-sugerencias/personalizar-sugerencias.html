@@ -69,9 +69,9 @@
             <input type="number" class="form-control"
                    min="1.10" max="20.00" step="0.10"
                    [(ngModel)]="filtro.cuotaMinimaTotal"
-                   placeholder="1.80">
+                   placeholder="Sin límite">
           </div>
-          <div class="form-text">Mínimo recomendado: 1.80</div>
+          <div class="form-text">Solo aplica a dobles y triples</div>
         </div>
 
         <!-- Buscar liga (select buscable) -->
@@ -142,19 +142,70 @@
           </div>
         </div>
 
-        <!-- Buscar equipo -->
+        <!-- Buscar equipo (select buscable) -->
         <div class="col-12 col-md-6 col-xl-3">
           <label class="form-label fw-semibold">
             <i class="fa-solid fa-shield-halved me-1 text-muted"></i>
             Equipo (opcional)
           </label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
-            <input type="text" class="form-control"
-                   [(ngModel)]="filtro.equipoBuscado"
-                   placeholder="ej: Real Madrid, Arsenal...">
+
+          <div class="position-relative">
+
+            <div class="input-group">
+              <span class="input-group-text"><i class="fa-solid fa-shield-halved"></i></span>
+              <input type="text"
+                     class="form-control"
+                     [class.border-primary]="equipoSeleccionado"
+                     [(ngModel)]="equipoTexto"
+                     (input)="onEquipoInput()"
+                     (focus)="onEquipoFocus()"
+                     placeholder="Buscar equipo..."
+                     autocomplete="off">
+              @if (equipoTexto) {
+                <button type="button" class="btn btn-outline-secondary"
+                        (click)="limpiarEquipo()" title="Limpiar">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              }
+            </div>
+
+            <!-- Dropdown de resultados -->
+            @if (mostrarDropdownEquipo && equiposFiltrados.length > 0) {
+              <div class="position-absolute w-100 border rounded bg-white shadow-sm"
+                   style="z-index:1050; max-height:220px; overflow-y:auto; top:calc(100% + 2px)">
+                @for (equipo of equiposFiltrados; track equipo) {
+                  <button type="button"
+                          class="d-block w-100 text-start px-3 py-2 border-0 bg-transparent"
+                          [class.bg-primary]="equipo === equipoSeleccionado"
+                          [class.text-white]="equipo === equipoSeleccionado"
+                          style="font-size:0.9rem; cursor:pointer"
+                          (mousedown)="seleccionarEquipo(equipo)">
+                    <i class="fa-solid fa-shield-halved me-2 opacity-50"></i>{{ equipo }}
+                  </button>
+                }
+              </div>
+            }
+
+            <!-- Mensaje si no hay coincidencias -->
+            @if (mostrarDropdownEquipo && equipoTexto && equiposFiltrados.length === 0) {
+              <div class="position-absolute w-100 border rounded bg-white shadow-sm px-3 py-2 text-muted small"
+                   style="z-index:1050; top:calc(100% + 2px)">
+                <i class="fa-solid fa-circle-info me-1"></i>
+                No se encontró "{{ equipoTexto }}"
+              </div>
+            }
+
           </div>
-          <div class="form-text">Al menos una pata incluirá este equipo</div>
+
+          <div class="form-text">
+            @if (equipoSeleccionado) {
+              <span class="text-primary fw-semibold">
+                <i class="fa-solid fa-check me-1"></i>{{ equipoSeleccionado }}
+              </span>
+            } @else {
+              Al menos una pata incluirá este equipo
+            }
+          </div>
         </div>
 
         <!-- Tipo de apuesta -->
@@ -266,6 +317,28 @@
         </h5>
       </div>
 
+      <!-- Leyenda de cuotas -->
+      <div class="d-flex flex-wrap gap-3 align-items-center mb-4 px-1"
+           style="font-size:0.8rem; color:#6c757d">
+        <span class="fw-semibold text-dark">Cuotas:</span>
+        <span class="d-flex align-items-center gap-1">
+          <span class="badge text-bg-warning fw-bold" style="font-size:0.75rem">
+            @1.85 <i class="fa-solid fa-lock" style="font-size:0.65rem; opacity:0.7"></i>
+          </span>
+          <span>Real — obtenida de bookmaker</span>
+        </span>
+        <span class="d-flex align-items-center gap-1">
+          <span class="badge fw-bold" style="border:1.5px solid #fd7e14; color:#fd7e14; background:transparent; font-size:0.75rem">
+            ~@1.23 <i class="fa-solid fa-flask" style="font-size:0.65rem"></i>
+          </span>
+          <span>Estimada — verifica en tu casa antes de apostar</span>
+        </span>
+        <span class="d-flex align-items-center gap-1">
+          <span class="badge rounded-pill fw-bold" style="background:#4caf50; color:#fff; font-size:0.75rem">Edge +12.5%</span>
+          <span>Ventaja real vs. la casa</span>
+        </span>
+      </div>
+
       <div class="row g-3">
         @for (sug of resultados; track $index) {
           <div class="col-12 col-lg-6">
@@ -276,9 +349,16 @@
                 <div class="d-flex align-items-center gap-2">
                   <i [class]="getIconoTipo(sug.tipo) + ' text-primary'"></i>
                   <span [class]="getBadgeTipo(sug.tipo)">{{ sug.tipo }}</span>
+                  <!-- Indicador cuotas reales -->
+                  @if (!todasReales(sug)) {
+                    <span class="badge rounded-pill fw-normal"
+                          style="font-size:0.6rem; background:#fd7e14; color:#fff"
+                          title="{{ countCuotasReales(sug) }}/{{ sug.selecciones.length }} patas con cuota real">
+                      {{ countCuotasReales(sug) }}/{{ sug.selecciones.length }} reales
+                    </span>
+                  }
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                  <!-- Confianza promedio por pata -->
                   <span class="badge rounded-pill fw-bold"
                         [style.background]="getBgConfianza(sug.confianzaPromedio)"
                         title="Confianza promedio por pata">
@@ -308,12 +388,38 @@
                       <span [class]="getBadgeCategoria(linea.categoria)" style="font-size:0.7rem">
                         {{ getLabelCategoria(linea.categoria) }}
                       </span>
-                      <span class="fw-semibold small text-dark">{{ linea.mercado }}</span>
-                      <span class="ms-auto d-flex align-items-center gap-1">
-                        <span class="fw-bold small" [style.color]="getBgConfianza(linea.probabilidad)">{{ probabilidadPct(linea.probabilidad) }}</span>
-                        <span class="badge rounded-pill bg-light text-dark border fw-bold">
-                          @{{ linea.cuota | number:'1.2-2' }}
+                      <span class="fw-semibold small text-dark">{{ linea.mercado | mercado }}</span>
+                      <span class="ms-auto d-flex align-items-center gap-1 flex-wrap">
+                        <span class="fw-bold small" [style.color]="getBgConfianza(linea.probabilidad)">
+                          {{ probabilidadPct(linea.probabilidad) }}
                         </span>
+
+                        <!-- Cuota real o estimada -->
+                        @if (linea.cuotaReal === false) {
+                          <span class="badge rounded-pill fw-bold"
+                                style="border:1.5px solid #fd7e14; color:#fd7e14; background:transparent; font-size:0.75rem"
+                                [title]="getTooltipCuota(linea)">
+                            ~@{{ linea.cuota | number:'1.2-2' }}
+                            <i class="fa-solid fa-flask ms-1" style="font-size:0.6rem"></i>
+                          </span>
+                        } @else {
+                          <span class="badge rounded-pill text-bg-warning fw-bold"
+                                style="font-size:0.75rem"
+                                [title]="getTooltipCuota(linea)">
+                            @{{ linea.cuota | number:'1.2-2' }}
+                            <i class="fa-solid fa-lock ms-1" style="font-size:0.6rem; opacity:0.6"></i>
+                          </span>
+                        }
+
+                        <!-- Edge — solo si hay cuota real -->
+                        @if (mostrarEdge(linea)) {
+                          <span class="badge rounded-pill fw-bold"
+                                [style.background]="getColorEdge(linea.edge)"
+                                style="font-size:0.65rem"
+                                title="Ventaja real vs. la casa de apuestas">
+                            {{ edgePct(linea.edge) }}
+                          </span>
+                        }
                       </span>
                     </div>
                   </div>

@@ -1,0 +1,257 @@
+<div class="container-fluid px-4">
+
+  <!-- ═══ ENCABEZADO ═══════════════════════════════════════════════════════ -->
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <div>
+      <h2 class="mb-0">Rendimiento</h2>
+      <p class="text-muted small mb-0">Historial y seguimiento automático de picks</p>
+    </div>
+    <button class="btn btn-primary"
+            (click)="resolverPendientes()"
+            [disabled]="resolviendo">
+      @if (resolviendo) {
+        <span class="spinner-border spinner-border-sm me-2"></span> Consultando API...
+      } @else {
+        <i class="fa-solid fa-rotate me-2"></i> Actualizar resultados
+      }
+    </button>
+  </div>
+  <hr class="mb-4">
+
+  <!-- Mensaje de resultado de resolución -->
+  @if (mensaje) {
+    <div class="alert alert-{{ tipoMensaje }} alert-dismissible d-flex align-items-center mb-4" role="alert">
+      @if (tipoMensaje === 'success') { <i class="fa-solid fa-circle-check me-2 fs-5"></i> }
+      @if (tipoMensaje === 'info')    { <i class="fa-solid fa-circle-info me-2 fs-5"></i> }
+      @if (tipoMensaje === 'warning') { <i class="fa-solid fa-triangle-exclamation me-2 fs-5"></i> }
+      <div>{{ mensaje }}</div>
+      <button type="button" class="btn-close" (click)="mensaje=''"></button>
+    </div>
+  }
+
+  <!-- ═══ TARJETAS DE ESTADÍSTICAS ═════════════════════════════════════════ -->
+  @if (estadisticas) {
+    <div class="row g-3 mb-4">
+
+      <!-- Win Rate -->
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body py-3">
+            <div class="fs-2 fw-bold"
+                 [class.text-success]="estadisticas.winRate >= 55"
+                 [class.text-warning]="estadisticas.winRate >= 45 && estadisticas.winRate < 55"
+                 [class.text-danger]="estadisticas.winRate < 45">
+              {{ estadisticas.winRate | number:'1.1-1' }}%
+            </div>
+            <div class="small text-muted">Win Rate</div>
+            <div class="mt-1 small">
+              <span class="text-success">{{ estadisticas.ganados }}G</span> /
+              <span class="text-danger">{{ estadisticas.perdidos }}P</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROI -->
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body py-3">
+            <div class="fs-2 fw-bold" [class]="getColorRoi(estadisticas.roi)">
+              {{ estadisticas.roi >= 0 ? '+' : '' }}{{ estadisticas.roi | number:'1.1-1' }}%
+            </div>
+            <div class="small text-muted">ROI</div>
+            <div class="mt-1 small text-muted">por unidad apostada</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body py-3">
+            <div class="fs-2 fw-bold">{{ estadisticas.totalPicks }}</div>
+            <div class="small text-muted">Total Picks</div>
+            <div class="mt-1 small text-muted">
+              {{ estadisticas.pendientes }} pendiente{{ estadisticas.pendientes !== 1 ? 's' : '' }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ganados -->
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body py-3">
+            <div class="fs-2 fw-bold text-success">{{ estadisticas.ganados }}</div>
+            <div class="small text-muted">Ganados</div>
+            <div class="mt-1 small text-muted">{{ estadisticas.nulos }} nulo{{ estadisticas.nulos !== 1 ? 's' : '' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Perdidos -->
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body py-3">
+            <div class="fs-2 fw-bold text-danger">{{ estadisticas.perdidos }}</div>
+            <div class="small text-muted">Perdidos</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Racha -->
+      <div class="col-6 col-md-4 col-xl-2">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body py-3">
+            <div class="fs-2 fw-bold">
+              <i [class]="getIconoRacha(estadisticas.rachaActual)"></i>
+            </div>
+            <div class="small text-muted">Racha</div>
+            <div class="mt-1 small fw-semibold">{{ estadisticas.rachaDescripcion }}</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <!-- ═══ RESUMEN ÚLTIMA RESOLUCIÓN ═════════════════════════════════════════ -->
+  @if (ultimaResolucion && ultimaResolucion.picksResueltos > 0) {
+    <div class="card border-start border-4 border-primary shadow-sm mb-4">
+      <div class="card-body py-3">
+        <h6 class="card-title mb-2">
+          <i class="fa-solid fa-wand-magic-sparkles me-2 text-primary"></i>
+          Última actualización automática
+        </h6>
+        <div class="row g-2 text-center">
+          <div class="col-3">
+            <div class="fw-bold fs-5">{{ ultimaResolucion.picksResueltos }}</div>
+            <div class="small text-muted">Resueltos</div>
+          </div>
+          <div class="col-3">
+            <div class="fw-bold fs-5 text-success">{{ ultimaResolucion.ganados }}</div>
+            <div class="small text-muted">Ganados</div>
+          </div>
+          <div class="col-3">
+            <div class="fw-bold fs-5 text-danger">{{ ultimaResolucion.perdidos }}</div>
+            <div class="small text-muted">Perdidos</div>
+          </div>
+          <div class="col-3">
+            <div class="fw-bold fs-5 text-secondary">{{ ultimaResolucion.nulos }}</div>
+            <div class="small text-muted">Nulos</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══ TABLA DE PICKS ════════════════════════════════════════════════════ -->
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+      <span class="fw-semibold">
+        <i class="fa-solid fa-list me-2"></i>
+        Historial completo
+        @if (cargando) {
+          <span class="spinner-border spinner-border-sm ms-2 text-muted"></span>
+        }
+      </span>
+      <div class="d-flex gap-2 align-items-center">
+        <span class="badge bg-warning text-dark">{{ picksPendientes.length }} pendientes</span>
+        <span class="badge bg-success">{{ picksGanados.length }} ganados</span>
+        <span class="badge bg-danger">{{ picksPerdidos.length }} perdidos</span>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover table-sm align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-3">Partido</th>
+            <th>Liga</th>
+            <th>Mercado</th>
+            <th>Categoría</th>
+            <th class="text-center">Prob.</th>
+            <th class="text-center">Edge</th>
+            <th class="text-center">Cuota</th>
+            <th>Casa</th>
+            <th class="text-center">Resultado</th>
+            <th class="text-end pe-3">Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (!cargando && picks.length === 0) {
+            <tr>
+              <td colspan="10" class="text-center text-muted py-5">
+                <i class="fa-solid fa-inbox fs-2 d-block mb-2"></i>
+                No hay picks registrados todavía
+              </td>
+            </tr>
+          }
+          @for (pick of picks; track pick.id) {
+            <tr>
+              <!-- Partido -->
+              <td class="ps-3">
+                <div class="fw-semibold small">
+                  {{ pick.partido?.equipoLocal }} vs {{ pick.partido?.equipoVisitante }}
+                </div>
+                <div class="text-muted" style="font-size:0.75rem">
+                  {{ formatFecha(pick.partido?.fechaPartido) }}
+                </div>
+              </td>
+
+              <!-- Liga -->
+              <td>
+                <span class="text-muted small">{{ pick.partido?.liga || '—' }}</span>
+              </td>
+
+              <!-- Mercado -->
+              <td>
+                <span class="small fw-semibold">{{ pick.nombreMercado }}</span>
+              </td>
+
+              <!-- Categoría -->
+              <td>
+                <span [class]="getBadgeCategoria(pick.categoriaMercado)" style="font-size:0.7rem">
+                  {{ pick.categoriaMercado || '—' }}
+                </span>
+              </td>
+
+              <!-- Probabilidad -->
+              <td class="text-center small">
+                {{ pick.probabilidad != null ? (pick.probabilidad * 100 | number:'1.0-0') + '%' : '—' }}
+              </td>
+
+              <!-- Edge -->
+              <td class="text-center small fw-semibold"
+                  [class.text-success]="(pick.edge ?? 0) >= 0.10"
+                  [class.text-primary]="(pick.edge ?? 0) >= 0.05 && (pick.edge ?? 0) < 0.10">
+                {{ edgePct(pick.edge) }}
+              </td>
+
+              <!-- Cuota -->
+              <td class="text-center small">
+                {{ pick.valorCuota | number:'1.2-2' }}
+              </td>
+
+              <!-- Casa -->
+              <td class="small text-muted">{{ pick.casaApuestas || '—' }}</td>
+
+              <!-- Resultado -->
+              <td class="text-center">
+                <span [class]="getBadgeResultado(pick.resultado)">
+                  {{ pick.resultado }}
+                </span>
+              </td>
+
+              <!-- Fecha publicación -->
+              <td class="text-end pe-3 small text-muted">
+                {{ formatFecha(pick.publicadoEn) }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

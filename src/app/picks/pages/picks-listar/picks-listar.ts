@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PickService } from '../../services/pick.service';
-import { Pick } from '../../interfaces/pick.interface';
+import { Pick, EstadisticasPick } from '../../interfaces/pick.interface';
 import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
@@ -12,51 +12,78 @@ import { AuthService } from '../../../auth/services/auth.service';
 })
 export class PicksListarPage implements OnInit {
 
-  private readonly pickService = inject(PickService);
-  private readonly authService = inject(AuthService);
+  private readonly pickService  = inject(PickService);
+  private readonly authService  = inject(AuthService);
 
-  public picks: Pick[] = [];
-  public cargando: boolean = false;
-  public esAdmin: boolean = false;
+  public picks:        Pick[]              = [];
+  public estadisticas: EstadisticasPick | null = null;
+  public cargando:     boolean = false;
+  public esAdmin:      boolean = false;
+
+  // Confirmación de liquidación
+  public pickEnLiquidacion: Pick | null = null;
 
   ngOnInit(): void {
     this.esAdmin = ['ROOT', 'ADMINISTRADOR'].includes(this.authService.getUserRole() || '');
+    this.cargarTodo();
+  }
+
+  cargarTodo(): void {
     this.cargarPicks();
+    this.cargarEstadisticas();
   }
 
   cargarPicks(): void {
     this.cargando = true;
     this.pickService.listar().subscribe({
       next: (data) => {
-        this.picks = data;
+        // Más recientes primero
+        this.picks = data.sort((a, b) =>
+          new Date(b.publicadoEn ?? 0).getTime() - new Date(a.publicadoEn ?? 0).getTime()
+        );
         this.cargando = false;
       },
-      error: (error) => {
-        console.error('Error al cargar picks:', error);
+      error: (err) => {
+        console.error('Error al cargar picks:', err);
         this.cargando = false;
       }
     });
   }
 
-  liquidar(pick: Pick): void {
-    if (!pick.id) return;
-    const resultados = ['GANADO', 'PERDIDO', 'NULO'];
-    const resultado = prompt(`Liquidar pick "${pick.nombreMercado}"\nResultado (${resultados.join(' / ')}):`);
-    if (!resultado || !resultados.includes(resultado.toUpperCase())) {
-      alert('Resultado inválido');
-      return;
-    }
-    this.pickService.liquidar(pick.id, resultado.toUpperCase()).subscribe({
+  cargarEstadisticas(): void {
+    this.pickService.estadisticas().subscribe({
+      next: (data) => { this.estadisticas = data; },
+      error: (err) => console.error('Error al cargar estadísticas:', err)
+    });
+  }
+
+  // ── Liquidación ──────────────────────────────────────────────────────────
+
+  iniciarLiquidacion(pick: Pick): void {
+    this.pickEnLiquidacion = pick;
+  }
+
+  cancelarLiquidacion(): void {
+    this.pickEnLiquidacion = null;
+  }
+
+  confirmarLiquidacion(resultado: 'GANADO' | 'PERDIDO' | 'NULO'): void {
+    if (!this.pickEnLiquidacion?.id) return;
+
+    this.pickService.liquidar(this.pickEnLiquidacion.id, resultado).subscribe({
       next: () => {
-        alert('Pick liquidado exitosamente');
-        this.cargarPicks();
+        this.pickEnLiquidacion = null;
+        this.cargarTodo();
       },
-      error: (error) => {
-        console.error('Error al liquidar pick:', error);
-        alert('Error al liquidar: ' + (error.error?.mensaje || 'Error desconocido'));
+      error: (err) => {
+        console.error('Error al liquidar:', err);
+        alert('Error: ' + (err.error?.error || 'Error desconocido'));
+        this.pickEnLiquidacion = null;
       }
     });
   }
+
+  // ── Helpers de estilo ────────────────────────────────────────────────────
 
   getBadgeResultado(resultado: string): string {
     switch (resultado) {
@@ -70,9 +97,38 @@ export class PicksListarPage implements OnInit {
 
   getBadgeCanal(canal: string): string {
     switch (canal) {
-      case 'TELEGRAM': return 'badge bg-info text-dark';
-      case 'WEB':      return 'badge bg-primary';
-      default:         return 'badge bg-secondary';
+      case 'FREE':    return 'badge bg-secondary';
+      case 'VIP':     return 'badge bg-primary';
+      case 'PREMIUM': return 'badge bg-warning text-dark';
+      default:        return 'badge bg-secondary';
     }
+  }
+
+  getColorRoi(roi: number): string {
+    if (roi > 10)  return 'text-success fw-bold';
+    if (roi > 0)   return 'text-success';
+    if (roi === 0) return 'text-muted';
+    return 'text-danger';
+  }
+
+  getColorRacha(racha: number): string {
+    if (racha > 0) return 'text-success fw-bold';
+    if (racha < 0) return 'text-danger fw-bold';
+    return 'text-muted';
+  }
+
+  getIconoRacha(racha: number): string {
+    if (racha > 2)  return 'fa-solid fa-fire text-warning';
+    if (racha > 0)  return 'fa-solid fa-arrow-trend-up text-success';
+    if (racha < -2) return 'fa-solid fa-skull text-danger';
+    if (racha < 0)  return 'fa-solid fa-arrow-trend-down text-danger';
+    return 'fa-solid fa-minus text-muted';
+  }
+
+  formatFecha(fecha: string | undefined): string {
+    if (!fecha) return '—';
+    return new Date(fecha).toLocaleDateString('es-CO', {
+      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
   }
 }

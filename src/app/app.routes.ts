@@ -86,6 +86,17 @@ export const routes: Routes = [
       },
 
       {
+        path: 'rendimiento',
+        title: 'Rendimiento',
+        loadComponent: () =>
+          import('./rendimiento/pages/rendimiento/rendimiento').then(
+            (m) => m.RendimientoPage
+          ),
+        canActivate: [RoleGuard],
+        data: { roles: ['ROOT', 'ADMINISTRADOR'] },
+      },
+
+      {
         path: 'usuario',
         title: 'Usuarios',
         loadChildren: () =>

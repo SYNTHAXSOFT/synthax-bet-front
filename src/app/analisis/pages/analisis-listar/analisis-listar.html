@@ -3,16 +3,43 @@
   <div class="d-flex justify-content-between align-items-center mb-2">
     <h2>Análisis del día</h2>
     @if (esAdmin) {
-      <button
-        class="btn btn-primary btn-sm"
-        (click)="ejecutarAnalisis()"
-        [disabled]="ejecutando"
-      >
-        @if (ejecutando) {
-          <span class="spinner-border spinner-border-sm me-1" role="status"></span>
-        }
-        {{ ejecutando ? 'Calculando...' : 'Ejecutar análisis' }}
-      </button>
+      <div class="d-flex gap-2">
+
+        <!-- Diagnóstico -->
+        <button
+          class="btn btn-outline-secondary btn-sm"
+          (click)="diagnosticarCuotas()"
+          title="Muestra paso a paso por qué puede fallar la ingesta de cuotas"
+        >
+          Diagnóstico cuotas
+        </button>
+
+        <!-- Ingestar cuotas → abre modal de ligas -->
+        <button
+          class="btn btn-outline-success btn-sm"
+          (click)="ingestarCuotas()"
+          [disabled]="ingiriendo"
+          title="Selecciona las ligas y descarga sus cuotas desde la API"
+        >
+          @if (ingiriendo) {
+            <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+          }
+          {{ ingiriendo ? 'Ingiriendo...' : 'Ingestar cuotas' }}
+        </button>
+
+        <!-- Ejecutar análisis → abre modal de ligas -->
+        <button
+          class="btn btn-primary btn-sm"
+          (click)="ejecutarAnalisis()"
+          [disabled]="ejecutando"
+        >
+          @if (ejecutando) {
+            <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+          }
+          {{ ejecutando ? 'Calculando...' : 'Ejecutar análisis' }}
+        </button>
+
+      </div>
     }
   </div>
   <hr class="mb-3">
@@ -22,14 +49,9 @@
     <div class="card-body py-3">
       <div class="row g-3 align-items-end">
 
-        <!-- Categoría -->
         <div class="col-12 col-md-3">
           <label class="form-label small fw-semibold mb-1">Categoría</label>
-          <select
-            class="form-select form-select-sm"
-            [(ngModel)]="categoriaFiltro"
-            (change)="aplicarFiltros()"
-          >
+          <select class="form-select form-select-sm" [(ngModel)]="categoriaFiltro" (change)="aplicarFiltros()">
             <option value="">Todas las categorías</option>
             @for (cat of categorias; track cat) {
               <option [value]="cat">{{ getLabelCategoria(cat) }}</option>
@@ -37,14 +59,9 @@
           </select>
         </div>
 
-        <!-- Confianza -->
         <div class="col-12 col-md-3">
           <label class="form-label small fw-semibold mb-1">Nivel de confianza</label>
-          <select
-            class="form-select form-select-sm"
-            [(ngModel)]="confianzaFiltro"
-            (change)="aplicarFiltros()"
-          >
+          <select class="form-select form-select-sm" [(ngModel)]="confianzaFiltro" (change)="aplicarFiltros()">
             <option value="">Todos los niveles</option>
             @for (nivel of nivelesConfianza; track nivel) {
               <option [value]="nivel">{{ nivel }}</option>
@@ -52,66 +69,41 @@
           </select>
         </div>
 
-        <!-- Probabilidad mínima -->
         <div class="col-12 col-md-2">
           <label class="form-label small fw-semibold mb-1">Probabilidad mínima</label>
-          <select
-            class="form-select form-select-sm"
-            [(ngModel)]="probabilidadMinima"
-            (change)="aplicarFiltros()"
-          >
+          <select class="form-select form-select-sm" [(ngModel)]="probabilidadMinima" (change)="aplicarFiltros()">
             @for (op of opcionesProbabilidad; track op.valor) {
               <option [value]="op.valor">{{ op.label }}</option>
             }
           </select>
         </div>
 
-        <!-- Equipo (búsqueda) -->
         <div class="col-12 col-md-2">
           <label class="form-label small fw-semibold mb-1">Buscar equipo</label>
-          <input
-            type="text"
-            class="form-control form-control-sm"
-            placeholder="Ej: Nacional..."
-            [(ngModel)]="equipoFiltro"
-            (input)="aplicarFiltros()"
-          />
+          <input type="text" class="form-control form-control-sm" placeholder="Ej: Nacional..."
+            [(ngModel)]="equipoFiltro" (input)="aplicarFiltros()" />
         </div>
 
-        <!-- Mercado (búsqueda) -->
         <div class="col-12 col-md-2">
           <label class="form-label small fw-semibold mb-1">Buscar mercado</label>
-          <input
-            type="text"
-            class="form-control form-control-sm"
-            placeholder="Ej: más de 2.5..."
-            [(ngModel)]="mercadoFiltro"
-            (input)="aplicarFiltros()"
-          />
+          <input type="text" class="form-control form-control-sm" placeholder="Ej: más de 2.5..."
+            [(ngModel)]="mercadoFiltro" (input)="aplicarFiltros()" />
         </div>
 
-        <!-- Botón limpiar -->
         <div class="col-12 col-md-1 d-flex align-items-end">
-          <button
-            class="btn btn-secondary btn-sm w-100"
-            (click)="limpiarFiltros()"
-            [disabled]="!hayFiltrosActivos"
-            title="Limpiar filtros"
-          >
+          <button class="btn btn-secondary btn-sm w-100" (click)="limpiarFiltros()"
+            [disabled]="!hayFiltrosActivos" title="Limpiar filtros">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
 
       </div>
 
-      <!-- Contador de resultados -->
       @if (totalCompleto > 0) {
         <div class="mt-2 pt-2 border-top">
           <small class="text-muted">
             Mostrando
-            <span class="fw-semibold" [class.text-primary]="hayFiltrosActivos">
-              {{ totalFiltrado }}
-            </span>
+            <span class="fw-semibold" [class.text-primary]="hayFiltrosActivos">{{ totalFiltrado }}</span>
             de
             <span class="fw-semibold">{{ totalCompleto }}</span>
             análisis
@@ -121,7 +113,6 @@
           </small>
         </div>
       }
-
     </div>
   </div>
 
@@ -190,3 +181,143 @@
   }
 
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MODAL — Selección de ligas
+     ═══════════════════════════════════════════════════════════════════════ -->
+@if (mostrarModal) {
+  <!-- Backdrop -->
+  <div class="modal-backdrop fade show" (click)="cerrarModal()"></div>
+
+  <div class="modal fade show d-block" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+      <div class="modal-content">
+
+        <!-- Header -->
+        <div class="modal-header">
+          <h5 class="modal-title">
+            @if (accionModal === 'analisis') {
+              <i class="fa-solid fa-chart-line me-2 text-primary"></i>
+            } @else {
+              <i class="fa-solid fa-tags me-2 text-success"></i>
+            }
+            {{ tituloModal }}
+          </h5>
+          <button type="button" class="btn-close" (click)="cerrarModal()"></button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+
+          <p class="text-muted small mb-3">{{ descripcionModal }}</p>
+
+          @if (cargandoLigas) {
+            <div class="d-flex justify-content-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando ligas...</span>
+              </div>
+            </div>
+          }
+
+          @if (!cargandoLigas && ligasDisponibles.length === 0) {
+            <div class="alert alert-warning">
+              No hay partidos programados para hoy. Sincroniza los partidos primero.
+            </div>
+          }
+
+          @if (!cargandoLigas && ligasDisponibles.length > 0) {
+
+            <!-- Barra de acciones rápidas -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="text-muted small">
+                <strong>{{ totalSeleccionadas }}</strong> de
+                <strong>{{ ligasDisponibles.length }}</strong> ligas seleccionadas
+              </span>
+              <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary btn-sm" (click)="seleccionarTodas()">
+                  Seleccionar todas
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" (click)="limpiarSeleccion()">
+                  Limpiar
+                </button>
+              </div>
+            </div>
+
+            <!-- Ligas agrupadas por país -->
+            @for (grupo of ligasPorPais; track grupo.pais) {
+              <div class="mb-3">
+                <div class="d-flex align-items-center mb-2">
+                  <span class="badge bg-secondary me-2">{{ grupo.pais }}</span>
+                  <hr class="flex-grow-1 my-0">
+                </div>
+                <div class="row g-2">
+                  @for (liga of grupo.ligas; track liga.idLigaApi) {
+                    <div class="col-12 col-md-6">
+                      <div
+                        class="d-flex align-items-center p-2 rounded border cursor-pointer"
+                        [class.border-primary]="estaSeleccionada(liga.idLigaApi)"
+                        [class.bg-primary]="estaSeleccionada(liga.idLigaApi)"
+                        [class.bg-opacity-10]="estaSeleccionada(liga.idLigaApi)"
+                        [class.border-light]="!estaSeleccionada(liga.idLigaApi)"
+                        style="cursor: pointer;"
+                        (click)="toggleLiga(liga.idLigaApi)"
+                      >
+                        <input
+                          type="checkbox"
+                          class="form-check-input me-2 flex-shrink-0"
+                          [checked]="estaSeleccionada(liga.idLigaApi)"
+                          (click)="$event.stopPropagation()"
+                          (change)="toggleLiga(liga.idLigaApi)"
+                        />
+                        <div class="flex-grow-1 small">
+                          <span class="fw-semibold">{{ liga.nombre }}</span>
+                          @if (liga.favorita) {
+                            <span class="badge bg-warning text-dark ms-1" style="font-size: 0.65rem;">★</span>
+                          }
+                        </div>
+                        <span class="badge bg-light text-secondary ms-2 flex-shrink-0">
+                          {{ liga.partidosHoy }} partido{{ liga.partidosHoy !== 1 ? 's' : '' }}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Leyenda favoritas -->
+            <div class="mt-2">
+              <small class="text-muted">
+                <span class="badge bg-warning text-dark me-1">★</span>
+                Ligas favoritas (pre-seleccionadas por defecto). Tu selección se guarda automáticamente.
+              </small>
+            </div>
+
+          }
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn"
+            [class.btn-primary]="accionModal === 'analisis'"
+            [class.btn-success]="accionModal === 'cuotas'"
+            [disabled]="totalSeleccionadas === 0 || cargandoLigas"
+            (click)="confirmarSeleccion()"
+          >
+            @if (accionModal === 'analisis') {
+              Ejecutar análisis ({{ totalSeleccionadas }} liga{{ totalSeleccionadas !== 1 ? 's' : '' }})
+            } @else {
+              Ingestar cuotas ({{ totalSeleccionadas }} liga{{ totalSeleccionadas !== 1 ? 's' : '' }})
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}

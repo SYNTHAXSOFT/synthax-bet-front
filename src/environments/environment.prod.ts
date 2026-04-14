@@ -4,6 +4,6 @@ export const environment = {
   companyName2: 'SYNTHAX BET',
   companySlogan: 'Análisis inteligente para apuestas deportivas',
 
-  // URL: 'https://api.statbet.com/api',
-  URL: 'http://localhost:8080/api',
+   URL: 'http://localhost:8080/api',
+  //URL: 'https://apibet.synthaxsoft.com/api'
 };

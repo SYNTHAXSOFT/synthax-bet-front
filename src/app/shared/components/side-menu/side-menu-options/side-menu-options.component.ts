@@ -70,6 +70,7 @@ export class SideMenuOptionsComponent {
     if (lowerName.includes('personalizar')) return 'fa-solid fa-sliders';
     if (lowerName.includes('sugerencia')) return 'fa-solid fa-lightbulb';
     if (lowerName.includes('pick')) return 'fa-solid fa-bullseye';
+    if (lowerName.includes('rendimiento')) return 'fa-solid fa-chart-bar';
     if (lowerName.includes('usuario')) return 'fa-solid fa-users';
     if (lowerName.includes('notificaciones')) return 'fa-solid fa-bell';
 

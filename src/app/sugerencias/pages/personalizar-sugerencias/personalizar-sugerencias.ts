@@ -2,12 +2,13 @@ import { Component, inject, OnInit, HostListener, ElementRef } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SugerenciasService } from '../../services/sugerencias.service';
+import { MercadoPipe } from '../../../shared/pipes/mercado.pipe';
 import { FiltroSugerencia, Sugerencia, SugerenciaLinea } from '../../interfaces/sugerencia.interface';
 
 @Component({
   selector: 'app-personalizar-sugerencias',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MercadoPipe],
   templateUrl: './personalizar-sugerencias.html',
 })
 export class PersonalizarSugerenciasPage implements OnInit {
@@ -28,6 +29,13 @@ export class PersonalizarSugerenciasPage implements OnInit {
   public ligaSeleccionada = '';            // valor que se envía al backend
   public mostrarDropdownLiga = false;      // controla si el panel está abierto
 
+  // ── Equipos (select buscable) ─────────────────────────────────────────────
+  public todosLosEquipos: string[]   = [];
+  public equiposFiltrados: string[]  = [];
+  public equipoTexto      = '';
+  public equipoSeleccionado = '';
+  public mostrarDropdownEquipo = false;
+
   // ── Categorías disponibles ───────────────────────────────────────────────
   public categoriaOpciones = [
     { valor: 'GOLES',           label: 'Goles',          icono: 'fa-solid fa-futbol' },
@@ -43,8 +51,7 @@ export class PersonalizarSugerenciasPage implements OnInit {
   public filtro = {
     probMinima:       50,
     probMaxima:       100,
-    cuotaMinimaTotal: 1.80,
-    equipoBuscado:    '',
+    cuotaMinimaTotal: null as number | null,
     tipoApuesta:      '',
   };
 
@@ -56,7 +63,15 @@ export class PersonalizarSugerenciasPage implements OnInit {
         this.todasLasLigas  = ligas;
         this.ligasFiltradas = ligas;
       },
-      error: () => { /* sin ligas disponibles, el campo sigue funcionando como texto libre */ }
+      error: () => { /* sin ligas disponibles */ }
+    });
+
+    this.sugerenciasService.obtenerEquipos().subscribe({
+      next: (equipos) => {
+        this.todosLosEquipos  = equipos;
+        this.equiposFiltrados = equipos;
+      },
+      error: () => { /* sin equipos disponibles */ }
     });
   }
 
@@ -93,11 +108,41 @@ export class PersonalizarSugerenciasPage implements OnInit {
     this.mostrarDropdownLiga = false;
   }
 
-  /** Cerrar el dropdown si el usuario hace click fuera del componente */
+  // ── Lógica del select buscable de Equipo ──────────────────────────────────
+
+  onEquipoInput(): void {
+    const texto = this.equipoTexto.toLowerCase().trim();
+    this.equiposFiltrados = texto
+      ? this.todosLosEquipos.filter(e => e.toLowerCase().includes(texto))
+      : this.todosLosEquipos;
+    this.equipoSeleccionado = '';
+    this.mostrarDropdownEquipo = true;
+  }
+
+  onEquipoFocus(): void {
+    this.equiposFiltrados      = this.todosLosEquipos;
+    this.mostrarDropdownEquipo = true;
+  }
+
+  seleccionarEquipo(equipo: string): void {
+    this.equipoTexto           = equipo;
+    this.equipoSeleccionado    = equipo;
+    this.mostrarDropdownEquipo = false;
+  }
+
+  limpiarEquipo(): void {
+    this.equipoTexto           = '';
+    this.equipoSeleccionado    = '';
+    this.equiposFiltrados      = this.todosLosEquipos;
+    this.mostrarDropdownEquipo = false;
+  }
+
+  /** Cerrar ambos dropdowns si el usuario hace click fuera del componente */
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     if (!this.el.nativeElement.contains(event.target)) {
-      this.mostrarDropdownLiga = false;
+      this.mostrarDropdownLiga  = false;
+      this.mostrarDropdownEquipo = false;
     }
   }
 
@@ -113,7 +158,7 @@ export class PersonalizarSugerenciasPage implements OnInit {
       probMinima:       this.filtro.probMinima / 100,
       probMaxima:       this.filtro.probMaxima / 100,
       cuotaMinimaTotal: this.filtro.cuotaMinimaTotal,
-      equipoBuscado:    this.filtro.equipoBuscado.trim() || null,
+      equipoBuscado:    this.equipoSeleccionado || this.equipoTexto.trim() || null,
       ligaBuscada:      this.ligaSeleccionada || this.ligaTexto.trim() || null,
       tipoApuesta:      this.filtro.tipoApuesta || null,
       categorias:       this.categoriasSeleccionadas,
@@ -136,12 +181,12 @@ export class PersonalizarSugerenciasPage implements OnInit {
     this.filtro = {
       probMinima:       50,
       probMaxima:       100,
-      cuotaMinimaTotal: 1.80,
-      equipoBuscado:    '',
+      cuotaMinimaTotal: null,
       tipoApuesta:      '',
     };
     this.categoriasSeleccionadas = [];
     this.limpiarLiga();
+    this.limpiarEquipo();
     this.resultados = [];
     this.error      = '';
     this.buscado    = false;
@@ -225,5 +270,59 @@ export class PersonalizarSugerenciasPage implements OnInit {
   getAnchoBarra(cuota: number): string {
     const pct = Math.min(100, ((cuota - 1.0) / 4.0) * 100);
     return pct.toFixed(0) + '%';
+  }
+
+  // ── Edge ─────────────────────────────────────────────────────────────────
+
+  edgePct(edge: number | undefined): string {
+    if (edge === undefined || edge === null) return '';
+    return (edge >= 0 ? '+' : '') + (edge * 100).toFixed(1) + '%';
+  }
+
+  getColorEdge(edge: number | undefined): string {
+    if (edge === undefined || edge === null || edge === 0) return '#6c757d';
+    if (edge >= 0.10) return '#4caf50';
+    if (edge >= 0.05) return '#8bc34a';
+    if (edge >= 0)    return '#ffc107';
+    return '#f44336';
+  }
+
+  mostrarEdge(linea: SugerenciaLinea): boolean {
+    return linea.cuotaReal === true
+        && linea.edge !== undefined
+        && linea.edge !== null
+        && linea.edge !== 0;
+  }
+
+  // ── Cuota real vs estimada ────────────────────────────────────────────────
+
+  getBadgeCuota(linea: SugerenciaLinea): string {
+    return linea.cuotaReal === false
+      ? 'badge rounded-pill fw-bold'
+      : 'badge rounded-pill text-bg-warning fw-bold';
+  }
+
+  getEstiloCuota(linea: SugerenciaLinea): string {
+    return linea.cuotaReal === false
+      ? 'border: 1.5px solid #fd7e14; color: #fd7e14; background: transparent;'
+      : '';
+  }
+
+  getCuotaPrefix(linea: SugerenciaLinea): string {
+    return linea.cuotaReal === false ? '~' : '';
+  }
+
+  getTooltipCuota(linea: SugerenciaLinea): string {
+    return linea.cuotaReal === false
+      ? 'Cuota estimada por el modelo (prob. inversa). La API no incluye este mercado para esta liga en el plan actual. Verifica la cuota real en tu casa de apuestas antes de apostar.'
+      : 'Cuota real obtenida de bookmaker. El edge muestra tu ventaja vs. la casa.';
+  }
+
+  countCuotasReales(sug: { selecciones: SugerenciaLinea[] }): number {
+    return sug.selecciones.filter(l => l.cuotaReal === true).length;
+  }
+
+  todasReales(sug: { selecciones: SugerenciaLinea[] }): boolean {
+    return sug.selecciones.every(l => l.cuotaReal === true);
   }
 }

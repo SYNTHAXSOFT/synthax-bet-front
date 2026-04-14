@@ -13,16 +13,12 @@
   </div>
   <hr class="mb-4">
 
-  <!-- Cargando -->
   @if (cargando) {
     <div class="d-flex justify-content-center align-items-center py-5">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Cargando...</span>
-      </div>
+      <div class="spinner-border text-primary" role="status"></div>
     </div>
   }
 
-  <!-- Error -->
   @if (!cargando && error) {
     <div class="alert alert-warning d-flex align-items-center gap-2">
       <i class="fa-solid fa-triangle-exclamation"></i>
@@ -32,7 +28,6 @@
 
   @if (!cargando && !error) {
 
-    <!-- Sin sugerencias -->
     @if (sugerencias.length === 0) {
       <div class="text-center py-5 text-muted">
         <i class="fa-solid fa-magnifying-glass fs-1 mb-3 d-block"></i>
@@ -41,9 +36,10 @@
       </div>
     }
 
-    <!-- Sugerencia del día (destacada) -->
+    <!-- ═══ SUGERENCIA DEL DÍA ══════════════════════════════════════════════ -->
     @if (sugerenciaDelDia) {
-      <div class="card border-0 shadow mb-4" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);">
+      <div class="card border-0 shadow mb-4"
+           style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);">
         <div class="card-body p-4 text-white">
 
           <div class="d-flex align-items-center gap-2 mb-3">
@@ -55,65 +51,98 @@
             </span>
           </div>
 
-          <!-- Métricas principales -->
+          <!-- Métricas -->
           <div class="row g-3 mb-4">
-
-            <!-- Confianza promedio — MÉTRICA PRINCIPAL -->
             <div class="col-6 col-md-3">
-              <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15)">
-                <div class="fs-2 fw-bold" [style.color]="getColorConfianza(sugerenciaDelDia.confianzaPromedio)">
+              <div class="p-3 rounded text-center"
+                   style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15)">
+                <div class="fs-2 fw-bold"
+                     [style.color]="getColorConfianza(sugerenciaDelDia.confianzaPromedio)">
                   {{ probabilidadPct(sugerenciaDelDia.confianzaPromedio) }}
                 </div>
                 <div class="small opacity-75">Confianza por pata</div>
                 <div class="mt-1">
-                  <span class="badge rounded-pill" [style.background]="getBgConfianza(sugerenciaDelDia.confianzaPromedio)" style="font-size:0.65rem">
+                  <span class="badge rounded-pill"
+                        [style.background]="getBgConfianza(sugerenciaDelDia.confianzaPromedio)"
+                        style="font-size:0.65rem">
                     {{ getLabelConfianza(sugerenciaDelDia.confianzaPromedio) }}
                   </span>
                 </div>
               </div>
             </div>
-
-            <!-- Cuota combinada -->
             <div class="col-6 col-md-3">
               <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.1)">
                 <div class="fs-2 fw-bold text-warning">{{ sugerenciaDelDia.cuotaCombinada | number:'1.2-2' }}</div>
                 <div class="small opacity-75">Cuota combinada</div>
               </div>
             </div>
-
-            <!-- Prob. combinada -->
             <div class="col-6 col-md-3">
               <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.1)">
                 <div class="fs-2 fw-bold text-info">{{ probabilidadPct(sugerenciaDelDia.probabilidadCombinada) }}</div>
                 <div class="small opacity-75">Prob. combinada</div>
               </div>
             </div>
-
-            <!-- Núm. selecciones -->
             <div class="col-6 col-md-3">
               <div class="p-3 rounded text-center" style="background: rgba(255,255,255,0.1)">
                 <div class="fs-2 fw-bold">{{ sugerenciaDelDia.selecciones.length }}</div>
                 <div class="small opacity-75">Selección(es)</div>
               </div>
             </div>
-
           </div>
 
-          <!-- Selecciones -->
+          <!-- Selecciones con botón Publicar Pick -->
           <div class="d-flex flex-column gap-2">
             @for (linea of sugerenciaDelDia.selecciones; track linea.idPartido) {
-              <div class="p-3 rounded d-flex flex-wrap align-items-center gap-2" style="background: rgba(255,255,255,0.08)">
+              <div class="p-3 rounded d-flex flex-wrap align-items-center gap-2"
+                   style="background: rgba(255,255,255,0.08)">
                 <div class="flex-fill">
                   <div class="fw-bold">{{ linea.partido }}</div>
                   <div class="small opacity-75">{{ linea.liga }}</div>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                   <span [class]="getBadgeCategoria(linea.categoria)">{{ getLabelCategoria(linea.categoria) }}</span>
-                  <span class="badge bg-light text-dark fw-semibold">{{ linea.mercado }}</span>
+                  <span class="badge bg-light text-dark fw-semibold">{{ linea.mercado | mercado }}</span>
                   <span class="fw-bold" [style.color]="getColorConfianza(linea.probabilidad)">
                     {{ probabilidadPct(linea.probabilidad) }}
                   </span>
-                  <span class="badge rounded-pill text-bg-warning fw-bold">@{{ linea.cuota | number:'1.2-2' }}</span>
+
+                  <!-- Cuota: dorada si es real, naranja con ~ si es estimada -->
+                  @if (linea.cuotaReal === false) {
+                    <span class="badge rounded-pill fw-bold"
+                          style="border:1.5px solid #fd7e14; color:#fd7e14; background:transparent"
+                          [title]="getTooltipCuota(linea)">
+                      ~@{{ linea.cuota | number:'1.2-2' }}
+                      <i class="fa-solid fa-flask ms-1" style="font-size:0.7rem"></i>
+                    </span>
+                    <span class="badge rounded-pill fw-semibold"
+                          style="font-size:0.65rem; background:#fd7e14; color:#fff">
+                      estimada
+                    </span>
+                  } @else {
+                    <span class="badge rounded-pill text-bg-warning fw-bold"
+                          [title]="getTooltipCuota(linea)">
+                      @{{ linea.cuota | number:'1.2-2' }}
+                      <i class="fa-solid fa-lock ms-1" style="font-size:0.65rem; opacity:0.7"></i>
+                    </span>
+                  }
+
+                  <!-- Edge — solo si hay cuota real y no es 0 -->
+                  @if (mostrarEdge(linea)) {
+                    <span class="badge rounded-pill fw-bold"
+                          [style.background]="getColorEdge(linea.edge)"
+                          title="Ventaja real vs. la casa de apuestas">
+                      Edge {{ edgePct(linea.edge) }}
+                    </span>
+                  }
+
+                  @if (esAdmin) {
+                    <button class="btn btn-sm btn-light fw-semibold"
+                            style="font-size: 0.75rem"
+                            (click)="abrirModalPick(linea)"
+                            title="Publicar este pick">
+                      <i class="fa-solid fa-thumbtack me-1"></i> Publicar
+                    </button>
+                  }
                 </div>
               </div>
             }
@@ -123,7 +152,31 @@
       </div>
     }
 
-    <!-- Otras sugerencias -->
+    <!-- ═══ LEYENDA ═════════════════════════════════════════════════════════ -->
+    @if (sugerencias.length > 0) {
+      <div class="d-flex flex-wrap gap-3 align-items-center mb-4 px-1"
+           style="font-size:0.8rem; color:#6c757d">
+        <span class="fw-semibold text-dark">Cuotas:</span>
+        <span class="d-flex align-items-center gap-1">
+          <span class="badge text-bg-warning fw-bold" style="font-size:0.75rem">
+            @1.85 <i class="fa-solid fa-lock" style="font-size:0.65rem; opacity:0.7"></i>
+          </span>
+          <span>Real — obtenida de bookmaker (el edge es fiable)</span>
+        </span>
+        <span class="d-flex align-items-center gap-1">
+          <span class="badge fw-bold" style="border:1.5px solid #fd7e14; color:#fd7e14; background:transparent; font-size:0.75rem">
+            ~@1.23 <i class="fa-solid fa-flask" style="font-size:0.65rem"></i>
+          </span>
+          <span>Estimada — la API no tiene este mercado para esta liga. Verifica en tu casa.</span>
+        </span>
+        <span class="d-flex align-items-center gap-1">
+          <span class="badge rounded-pill fw-bold" style="background:#4caf50; color:#fff; font-size:0.75rem">Edge +12.5%</span>
+          <span>Ventaja real vs. la casa</span>
+        </span>
+      </div>
+    }
+
+    <!-- ═══ OTRAS SUGERENCIAS ════════════════════════════════════════════════ -->
     @if (restoSugerencias.length > 0) {
       <h5 class="text-muted mb-3">Otras combinadas recomendadas</h5>
       <div class="row g-3">
@@ -131,14 +184,20 @@
           <div class="col-12 col-md-6 col-xl-4">
             <div class="card h-100 border shadow-sm">
 
-              <!-- Header de tarjeta -->
               <div class="card-header d-flex align-items-center justify-content-between py-2">
                 <div class="d-flex align-items-center gap-2">
                   <i [class]="getIconoTipo(sug.tipo) + ' text-primary'"></i>
                   <span class="fw-semibold">{{ sug.tipo }}</span>
+                  <!-- Indicador de cuántas patas tienen cuota real -->
+                  @if (!todasReales(sug)) {
+                    <span class="badge rounded-pill fw-normal"
+                          style="font-size:0.6rem; background:#fd7e14; color:#fff"
+                          title="{{ countCuotasReales(sug) }}/{{ sug.selecciones.length }} patas con cuota real">
+                      {{ countCuotasReales(sug) }}/{{ sug.selecciones.length }} reales
+                    </span>
+                  }
                 </div>
                 <div class="d-flex gap-2 align-items-center">
-                  <!-- Confianza promedio (métrica de calidad) -->
                   <span class="badge rounded-pill"
                         [style.background]="getBgConfianza(sug.confianzaPromedio)"
                         title="Confianza promedio por pata">
@@ -148,20 +207,56 @@
                 </div>
               </div>
 
-              <!-- Body: selecciones -->
               <div class="card-body p-0">
                 @for (linea of sug.selecciones; track linea.idPartido) {
                   <div class="p-3 border-bottom">
                     <div class="fw-semibold small">{{ linea.partido }}</div>
                     <div class="text-muted" style="font-size: 0.75rem">{{ linea.liga }}</div>
                     <div class="d-flex flex-wrap gap-1 mt-1 align-items-center">
-                      <span [class]="getBadgeCategoria(linea.categoria)" style="font-size: 0.7rem">{{ getLabelCategoria(linea.categoria) }}</span>
-                      <span class="text-dark fw-semibold small">{{ linea.mercado }}</span>
+                      <span [class]="getBadgeCategoria(linea.categoria)" style="font-size:0.7rem">
+                        {{ getLabelCategoria(linea.categoria) }}
+                      </span>
+                      <span class="text-dark fw-semibold small">{{ linea.mercado | mercado }}</span>
                       <span class="ms-auto fw-bold small" [style.color]="getColorConfianza(linea.probabilidad)">
                         {{ probabilidadPct(linea.probabilidad) }}
                       </span>
-                      <span class="badge rounded-pill bg-light text-dark border fw-bold">@{{ linea.cuota | number:'1.2-2' }}</span>
+
+                      <!-- Cuota real o estimada -->
+                      @if (linea.cuotaReal === false) {
+                        <span class="badge rounded-pill fw-bold"
+                              style="border:1.5px solid #fd7e14; color:#fd7e14; background:transparent; font-size:0.75rem"
+                              [title]="getTooltipCuota(linea)">
+                          ~@{{ linea.cuota | number:'1.2-2' }}
+                          <i class="fa-solid fa-flask ms-1" style="font-size:0.6rem"></i>
+                        </span>
+                      } @else {
+                        <span class="badge rounded-pill text-bg-warning fw-bold"
+                              style="font-size:0.75rem"
+                              [title]="getTooltipCuota(linea)">
+                          @{{ linea.cuota | number:'1.2-2' }}
+                          <i class="fa-solid fa-lock ms-1" style="font-size:0.6rem; opacity:0.6"></i>
+                        </span>
+                      }
+
+                      <!-- Edge — solo si hay cuota real -->
+                      @if (mostrarEdge(linea)) {
+                        <span class="badge rounded-pill fw-bold"
+                              [style.background]="getColorEdge(linea.edge)"
+                              style="font-size:0.65rem"
+                              title="Ventaja real vs. la casa">
+                          {{ edgePct(linea.edge) }}
+                        </span>
+                      }
                     </div>
+                    @if (esAdmin) {
+                      <div class="mt-2">
+                        <button class="btn btn-outline-primary btn-sm w-100"
+                                style="font-size: 0.75rem"
+                                (click)="abrirModalPick(linea)">
+                          <i class="fa-solid fa-thumbtack me-1"></i> Publicar como Pick
+                        </button>
+                      </div>
+                    }
                   </div>
                 }
               </div>
@@ -175,3 +270,99 @@
   }
 
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MODAL — Publicar Pick
+     ═══════════════════════════════════════════════════════════════════════ -->
+@if (mostrarModalPick && lineaSeleccionada) {
+  <div class="modal-backdrop fade show" (click)="cerrarModalPick()"></div>
+
+  <div class="modal fade show d-block" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fa-solid fa-thumbtack me-2 text-primary"></i>
+            Publicar Pick
+          </h5>
+          <button type="button" class="btn-close" (click)="cerrarModalPick()"></button>
+        </div>
+
+        <div class="modal-body">
+
+          <!-- Info del pick (solo lectura) -->
+          <div class="alert alert-light border mb-3 p-3">
+            <div class="fw-bold">{{ lineaSeleccionada.partido }}</div>
+            <div class="text-muted small mb-2">{{ lineaSeleccionada.liga }}</div>
+            <div class="d-flex gap-2 flex-wrap">
+              <span [class]="getBadgeCategoria(lineaSeleccionada.categoria)">
+                {{ getLabelCategoria(lineaSeleccionada.categoria) }}
+              </span>
+              <span class="badge bg-dark">{{ lineaSeleccionada.mercado | mercado }}</span>
+              <span class="badge bg-secondary">
+                {{ probabilidadPct(lineaSeleccionada.probabilidad) }} prob.
+              </span>
+            </div>
+          </div>
+
+          <!-- Cuota editable -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              Cuota <span class="text-muted fw-normal">(confirmada en la casa)</span>
+            </label>
+            <input type="number" class="form-control" step="0.01" min="1.01"
+                   [(ngModel)]="pickCuota" placeholder="Ej: 1.85" />
+            <div class="form-text">Pre-cargada desde el análisis. Ajústala si la casa muestra una diferente.</div>
+          </div>
+
+          <!-- Canal -->
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Canal de publicación</label>
+            <div class="d-flex flex-column gap-2">
+              @for (canal of canales; track canal.value) {
+                <div class="form-check border rounded p-3"
+                     [class.border-primary]="pickCanal === canal.value"
+                     [class.bg-primary]="pickCanal === canal.value"
+                     [class.bg-opacity-10]="pickCanal === canal.value"
+                     style="cursor:pointer"
+                     (click)="pickCanal = canal.value">
+                  <input class="form-check-input" type="radio"
+                         [value]="canal.value" [(ngModel)]="pickCanal" />
+                  <label class="form-check-label ms-1 fw-semibold" style="cursor:pointer">
+                    {{ canal.label }}
+                  </label>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Casa apuestas -->
+          <div class="mb-1">
+            <label class="form-label fw-semibold">
+              Casa de apuestas <span class="text-muted fw-normal">(opcional)</span>
+            </label>
+            <input type="text" class="form-control" [(ngModel)]="pickCasa"
+                   placeholder="Ej: Betplay, Rushbet, Wplay..." />
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModalPick()">
+            Cancelar
+          </button>
+          <button type="button" class="btn btn-primary"
+                  [disabled]="publicando || !pickCuota || pickCuota < 1"
+                  (click)="publicarPick()">
+            @if (publicando) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            {{ publicando ? 'Publicando...' : 'Publicar Pick' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+}

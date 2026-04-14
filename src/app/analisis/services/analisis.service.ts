@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Analisis, FiltroAnalisis } from '../interfaces/analisis.interface';
+import { Analisis, FiltroAnalisis, LigaDisponible } from '../interfaces/analisis.interface';
 import { API_ENDPOINTS } from '../../utils/constantes-utils';
 import { environment } from '../../../environments/environment';
 
@@ -26,7 +26,14 @@ export class AnalisisService {
     return this.http.get<Analisis[]>(`${environment.URL}/${API_ENDPOINTS.ANALISIS}/partido/${partidoId}`);
   }
 
-  ejecutar(): Observable<any> {
-    return this.http.post(`${environment.URL}/${API_ENDPOINTS.ANALISIS}/ejecutar`, {});
+  ejecutar(ligaIds?: string[]): Observable<any> {
+    const body = ligaIds && ligaIds.length > 0 ? { ligaIds } : {};
+    return this.http.post(`${environment.URL}/${API_ENDPOINTS.ANALISIS}/ejecutar`, body);
+  }
+
+  ligasDisponiblesHoy(): Observable<LigaDisponible[]> {
+    return this.http.get<LigaDisponible[]>(
+      `${environment.URL}/${API_ENDPOINTS.CUOTAS}/ligas-disponibles-hoy`
+    );
   }
 }
