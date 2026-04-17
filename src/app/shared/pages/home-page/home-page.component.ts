@@ -10,6 +10,7 @@ import { LoginRequest } from '../../../auth/interfaces/auth.interface';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './home-page.component.html',
+  styleUrls: ['./styles.css'],
 })
 export class HomePageComponent {
 

@@ -26,3 +26,13 @@ export interface LigaDisponible {
   partidosHoy: number;
   favorita: boolean;
 }
+
+/** Estado de ejecución del motor — se consulta vía polling para la barra de progreso */
+export interface ProgresoAnalisis {
+  ejecutando:  boolean;
+  fase:        'ANALISIS' | 'CUOTAS' | 'IDLE';
+  progreso:    number;
+  total:       number;
+  porcentaje:  number;
+  detalle:     string;
+}

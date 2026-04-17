@@ -46,4 +46,11 @@ export class PickService {
       `${environment.URL}/${API_ENDPOINTS.PICKS}/resolver-pendientes`, {}
     );
   }
+
+  /** Reactiva un pick a PENDIENTE para que sea re-evaluado automáticamente */
+  reactivar(id: number): Observable<Pick> {
+    return this.http.patch<Pick>(
+      `${environment.URL}/${API_ENDPOINTS.PICKS}/${id}/reactivar`, {}
+    );
+  }
 }

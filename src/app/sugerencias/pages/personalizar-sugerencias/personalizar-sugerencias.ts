@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { SugerenciasService } from '../../services/sugerencias.service';
 import { MercadoPipe } from '../../../shared/pipes/mercado.pipe';
 import { FiltroSugerencia, Sugerencia, SugerenciaLinea } from '../../interfaces/sugerencia.interface';
+import { PickService } from '../../../picks/services/pick.service';
+import { AuthService } from '../../../auth/services/auth.service';
 
 @Component({
   selector: 'app-personalizar-sugerencias',
@@ -14,13 +16,30 @@ import { FiltroSugerencia, Sugerencia, SugerenciaLinea } from '../../interfaces/
 export class PersonalizarSugerenciasPage implements OnInit {
 
   private sugerenciasService = inject(SugerenciasService);
+  private pickService        = inject(PickService);
+  private authService        = inject(AuthService);
   private el = inject(ElementRef);
 
   // ── Estado general ────────────────────────────────────────────────────────
   public resultados: Sugerencia[] = [];
-  public cargando = false;
-  public error = '';
-  public buscado = false;
+  public cargando   = false;
+  public publicando = false;
+  public error      = '';
+  public buscado    = false;
+  public esAdmin    = false;
+
+  // ── Modal publicar pick ───────────────────────────────────────────────────
+  public mostrarModalPick  = false;
+  public lineaSeleccionada: SugerenciaLinea | null = null;
+  public pickCuota: number = 0;
+  public pickCanal: string = 'FREE';
+  public pickCasa:  string = '';
+
+  public readonly canales = [
+    { value: 'FREE',    label: 'FREE — pick público' },
+    { value: 'VIP',     label: 'VIP — suscriptores' },
+    { value: 'PREMIUM', label: 'PREMIUM — máxima confianza' },
+  ];
 
   // ── Ligas (select buscable) ───────────────────────────────────────────────
   public todasLasLigas: string[]   = [];   // lista completa cargada del backend
@@ -58,6 +77,8 @@ export class PersonalizarSugerenciasPage implements OnInit {
   // ── Ciclo de vida ─────────────────────────────────────────────────────────
 
   ngOnInit(): void {
+    this.esAdmin = ['ROOT', 'ADMINISTRADOR'].includes(this.authService.getUserRole() || '');
+
     this.sugerenciasService.obtenerLigas().subscribe({
       next: (ligas) => {
         this.todasLasLigas  = ligas;
@@ -203,6 +224,52 @@ export class PersonalizarSugerenciasPage implements OnInit {
 
   categoriaSeleccionada(valor: string): boolean {
     return this.categoriasSeleccionadas.includes(valor);
+  }
+
+  // ── Modal publicar pick ───────────────────────────────────────────────────
+
+  abrirModalPick(linea: SugerenciaLinea): void {
+    this.lineaSeleccionada = linea;
+    this.pickCuota         = linea.cuota;
+    this.pickCanal         = 'FREE';
+    this.pickCasa          = '';
+    this.mostrarModalPick  = true;
+  }
+
+  cerrarModalPick(): void {
+    this.mostrarModalPick  = false;
+    this.lineaSeleccionada = null;
+  }
+
+  publicarPick(): void {
+    if (!this.lineaSeleccionada) return;
+    if (!this.pickCuota || this.pickCuota < 1) {
+      alert('La cuota debe ser mayor a 1.00');
+      return;
+    }
+
+    this.publicando = true;
+    const linea = this.lineaSeleccionada;
+
+    this.pickService.crear({
+      partidoId:     linea.idPartido,
+      nombreMercado: linea.mercado,
+      probabilidad:  linea.probabilidad,
+      valorCuota:    this.pickCuota,
+      casaApuestas:  this.pickCasa || 'Sin especificar',
+      canal:         this.pickCanal,
+    }).subscribe({
+      next: () => {
+        alert(`✓ Pick publicado correctamente en canal ${this.pickCanal}`);
+        this.publicando = false;
+        this.cerrarModalPick();
+      },
+      error: (err) => {
+        console.error('Error publicando pick:', err);
+        alert('Error: ' + (err.error?.error || err.error?.message || 'Error desconocido'));
+        this.publicando = false;
+      }
+    });
   }
 
   // ── Helpers de presentación ───────────────────────────────────────────────

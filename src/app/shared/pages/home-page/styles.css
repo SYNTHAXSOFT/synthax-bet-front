@@ -1,220 +1,260 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Inter", system-ui, sans-serif;
-}
-
-body {
-  min-height: 100vh;
-  position: relative;
-  overflow-x: hidden;
-}
-
-
-
-/* Overlay oscuro encima de la imagen */
-.hero-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6); /* ⬅️ Ajusta la opacidad aquí */
-  z-index: -1;
-}
-
-/* Contenedor principal */
-.hero-content {
+/* ── Wrapper full screen ──────────────────────────────────── */
+.lw {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
+  background: #070b14;
   position: relative;
-  z-index: 1;
+  overflow: hidden;
+  padding: 1.5rem 1rem;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
-.content-wrapper {
+/* ── Grid de puntos decorativo ────────────────────────────── */
+.dot-grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.045) 1px, transparent 1px);
+  background-size: 26px 26px;
+  pointer-events: none;
+}
+
+/* ── Orbs de fondo ────────────────────────────────────────── */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  will-change: transform;
+}
+.orb-1 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(0,230,118,0.16) 0%, transparent 70%);
+  top: -130px;
+  left: -110px;
+  animation: floatA 9s ease-in-out infinite alternate;
+}
+.orb-2 {
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(79,142,247,0.14) 0%, transparent 70%);
+  bottom: -90px;
+  right: -90px;
+  animation: floatB 11s ease-in-out infinite alternate;
+}
+.orb-3 {
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(circle, rgba(138,43,226,0.10) 0%, transparent 70%);
+  top: 50%;
+  left: 58%;
+  animation: floatA 14s ease-in-out infinite alternate-reverse;
+}
+@keyframes floatA {
+  from { transform: translate(0, 0);        }
+  to   { transform: translate(28px, 38px);  }
+}
+@keyframes floatB {
+  from { transform: translate(0, 0);         }
+  to   { transform: translate(-24px, -32px); }
+}
+
+/* ── Contenedor central ───────────────────────────────────── */
+.lc {
+  position: relative;
+  z-index: 10;
   width: 100%;
-  max-width: 100%;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  align-items: center;
+  gap: 1.5rem;
 }
 
-/* Logo */
-.logo {
-  width: 120px;
-  height: auto;
-  margin-bottom: 1.5rem;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
-  filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.2));
-}
-
-/* Sección del título */
-.titulo {
+/* ── Marca / Logo ─────────────────────────────────────────── */
+.brand {
   text-align: center;
-  color: white;
 }
 
-.titulo h1 {
-  font-size: 3.5rem;
-  margin-bottom: 1.5rem;
-  line-height: 1.1;
+.logo-ring {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgba(0,230,118,0.12),
+    rgba(79,142,247,0.12)
+  );
+  border: 2px solid rgba(0,230,118,0.30);
+  margin-bottom: 1rem;
+  box-shadow:
+    0 0 28px rgba(0,230,118,0.20),
+    0 0 60px rgba(0,230,118,0.08);
+}
+.logo-ring img {
+  width: 54px;
+  filter: drop-shadow(0 0 8px rgba(0,230,118,0.55));
+}
+
+.brand-title {
+  font-size: 1.85rem;
   font-weight: 800;
-  color: white;
-  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); /* ⬅️ Sombra para legibilidad */
+  letter-spacing: 0.14em;
+  color: #00e676;
+  text-shadow:
+    0 0 18px rgba(0,230,118,0.60),
+    0 0 42px rgba(0,230,118,0.25);
+  margin-bottom: 0.4rem;
+  line-height: 1;
+}
+.brand-sub {
+  font-size: 0.76rem;
+  color: rgba(255,255,255,0.38);
+  letter-spacing: 0.05em;
 }
 
-.titulo span {
-  color: #818cf8; /* ⬅️ Color morado más claro para contrastar */
-}
-
-.titulo p {
-  font-size: 1.05rem;
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.6;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-/* Tarjeta del formulario con backdrop blur */
-.formulario {
-  background: rgba(31, 41, 55, 0.85); /* ⬅️ Semi-transparente */
-  backdrop-filter: blur(10px); /* ⬅️ Efecto glassmorphism */
-  padding: 2.5rem 2rem;
-  border-radius: 1rem;
+/* ── Tarjeta glassmorphism ────────────────────────────────── */
+.glass-card {
   width: 100%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255,255,255,0.035);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border: 1px solid rgba(255,255,255,0.09);
+  border-radius: 22px;
+  padding: 1.75rem 1.5rem 1.5rem;
+  box-shadow:
+    0 10px 44px rgba(0,0,0,0.50),
+    inset 0 0 0 1px rgba(0,230,118,0.06);
 }
 
-.formulario h2 {
-  text-align: center;
-  font-size: 1.8rem;
-  margin-bottom: 2rem;
+.card-head {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  color: rgba(0,230,118,0.75);
+  text-transform: uppercase;
+  margin-bottom: 1.35rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+/* ── Inputs ───────────────────────────────────────────────── */
+.field-wrap {
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+.field-wrap:focus-within {
+  border-color: rgba(0,230,118,0.50);
+  box-shadow: 0 0 0 3px rgba(0,230,118,0.11);
+}
+
+.field-icon {
+  padding: 0 0.85rem;
+  color: rgba(0,230,118,0.65);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+.field-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0.875rem 0.875rem 0.875rem 0;
+  color: #fff;
+  font-size: 0.95rem;
+  min-width: 0;
+}
+.field-input::placeholder {
+  color: rgba(255,255,255,0.30);
+}
+
+/* ── Mensaje de error ─────────────────────────────────────── */
+.err-msg {
+  background: rgba(244,67,54,0.10);
+  border: 1px solid rgba(244,67,54,0.30);
+  border-radius: 10px;
+  color: #ff7070;
+  font-size: 0.82rem;
+  padding: 0.65rem 0.9rem;
+}
+
+/* ── Botón ingresar ───────────────────────────────────────── */
+.btn-enter {
+  width: 100%;
+  padding: 0.92rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.95rem;
   font-weight: 700;
-  color: white;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: linear-gradient(135deg, #00e676 0%, #00c853 100%);
+  color: #052a14;
+  box-shadow: 0 4px 22px rgba(0,230,118,0.38);
+  margin-bottom: 0.2rem;
+}
+.btn-enter:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,230,118,0.55);
+}
+.btn-enter:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 3px 16px rgba(0,230,118,0.30);
+}
+.btn-enter:disabled {
+  opacity: 0.60;
+  cursor: not-allowed;
 }
 
-/* Formulario */
-form {
+/* ── Fila de funcionalidades ──────────────────────────────── */
+.features-row {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1.4rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+.feat {
   display: flex;
   flex-direction: column;
-  gap: 1.3rem;
-}
-
-label {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 0.4rem;
-  font-weight: 500;
-}
-
-input {
-  padding: 1rem 1.1rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 0.6rem;
-  background-color: rgba(17, 24, 39, 0.6);
-  color: white;
-  font-size: 1.05rem;
-  width: 100%;
-  transition: all 0.3s ease;
-}
-
-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-input:focus {
-  outline: none;
-  border-color: #818cf8;
-  background-color: rgba(17, 24, 39, 0.8);
-  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.3);
-}
-
-button {
-  padding: 1.1rem;
-  margin-top: 0.8rem;
-  border: none;
-  border-radius: 0.6rem;
-  background-color: #6366f1;
-  color: white;
-  font-size: 1.1rem;
-  font-weight: 700;
-  cursor: pointer;
+  align-items: center;
+  gap: 0.3rem;
+  color: rgba(255,255,255,0.35);
+  font-size: 0.62rem;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
+}
+.feat i {
+  font-size: 1rem;
+  color: rgba(0,230,118,0.55);
 }
 
-button:hover {
-  background-color: #818cf8;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+/* ── Texto de pie ─────────────────────────────────────────── */
+.footer-txt {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.20);
+  text-align: center;
+  letter-spacing: 0.04em;
 }
 
-button:active {
-  transform: translateY(0);
-}
-
-/* ======== DESKTOP ======== */
-@media (min-width: 769px) {
-  .hero-content {
-    padding: 3rem;
-  }
-
-  .content-wrapper {
-    max-width: 1200px;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    gap: 4rem;
-  }
-
-  .logo {
-    width: 160px;
-    margin-bottom: 2rem;
-    margin-left: 0;
-  }
-
-  .titulo {
-    flex: 1;
-    text-align: left;
-  }
-
-  .titulo h1 {
-    font-size: 3.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .titulo p {
-    font-size: 1.2rem;
-  }
-
-  .formulario {
-    width: 420px;
-    flex-shrink: 0;
-    padding: 2.5rem;
-  }
-
-  .formulario h2 {
-    font-size: 1.9rem;
-  }
-
-  label {
-    font-size: 1rem;
-  }
-
-  input {
-    padding: 0.85rem 1rem;
-    font-size: 1rem;
-  }
-
-  button {
-    padding: 1rem;
-    font-size: 1rem;
-  }
+/* ── Pantallas muy pequeñas (< 380px) ────────────────────── */
+@media (max-width: 380px) {
+  .lc              { gap: 1.1rem; }
+  .glass-card      { padding: 1.5rem 1.2rem 1.25rem; border-radius: 18px; }
+  .brand-title     { font-size: 1.55rem; }
+  .logo-ring       { width: 76px; height: 76px; }
+  .logo-ring img   { width: 46px; }
+  .btn-enter       { font-size: 0.88rem; padding: 0.82rem; }
 }

@@ -241,6 +241,13 @@
                 <span [class]="getBadgeResultado(pick.resultado)">
                   {{ pick.resultado }}
                 </span>
+                @if (pick.resultado === 'NULO') {
+                  <button class="btn btn-link btn-sm p-0 ms-1 text-warning"
+                          title="Reactivar como pendiente para re-evaluar"
+                          (click)="reactivarPick(pick.id!)">
+                    <i class="fa-solid fa-rotate-right" style="font-size:0.75rem"></i>
+                  </button>
+                }
               </td>
 
               <!-- Fecha publicación -->

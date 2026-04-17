@@ -422,6 +422,17 @@
                         }
                       </span>
                     </div>
+
+                    <!-- Botón publicar como pick (solo admin) -->
+                    @if (esAdmin) {
+                      <div class="mt-2">
+                        <button class="btn btn-outline-primary btn-sm w-100"
+                                style="font-size:0.75rem"
+                                (click)="abrirModalPick(linea)">
+                          <i class="fa-solid fa-thumbtack me-1"></i> Publicar como Pick
+                        </button>
+                      </div>
+                    }
                   </div>
                 }
               </div>
@@ -433,5 +444,68 @@
     }
 
   }
+
+<!-- ── Modal publicar pick ──────────────────────────────────────────────── -->
+@if (mostrarModalPick && lineaSeleccionada) {
+  <div class="modal-backdrop fade show" (click)="cerrarModalPick()"></div>
+  <div class="modal fade show d-block" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fa-solid fa-thumbtack me-2 text-primary"></i>
+            Publicar Pick
+          </h5>
+          <button type="button" class="btn-close" (click)="cerrarModalPick()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-light border mb-3 p-3">
+            <div class="fw-bold">{{ lineaSeleccionada.partido }}</div>
+            <div class="text-muted small mb-2">{{ lineaSeleccionada.liga }}</div>
+            <div class="d-flex gap-2 flex-wrap">
+              <span [class]="getBadgeCategoria(lineaSeleccionada.categoria)">{{ getLabelCategoria(lineaSeleccionada.categoria) }}</span>
+              <span class="badge bg-dark">{{ lineaSeleccionada.mercado | mercado }}</span>
+              <span class="badge bg-secondary">{{ probabilidadPct(lineaSeleccionada.probabilidad) }} prob.</span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Cuota <span class="text-muted fw-normal">(confirmada en la casa)</span></label>
+            <input type="number" class="form-control" step="0.01" min="1.01" [(ngModel)]="pickCuota" placeholder="Ej: 1.85" />
+            <div class="form-text">Pre-cargada desde el análisis. Ajústala si la casa muestra una diferente.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Canal de publicación</label>
+            <div class="d-flex flex-column gap-2">
+              @for (canal of canales; track canal.value) {
+                <div class="form-check border rounded p-3"
+                     [class.border-primary]="pickCanal === canal.value"
+                     [class.bg-primary]="pickCanal === canal.value"
+                     [class.bg-opacity-10]="pickCanal === canal.value"
+                     style="cursor:pointer"
+                     (click)="pickCanal = canal.value">
+                  <input class="form-check-input" type="radio" [value]="canal.value" [(ngModel)]="pickCanal" />
+                  <label class="form-check-label ms-1 fw-semibold" style="cursor:pointer">{{ canal.label }}</label>
+                </div>
+              }
+            </div>
+          </div>
+          <div class="mb-1">
+            <label class="form-label fw-semibold">Casa de apuestas <span class="text-muted fw-normal">(opcional)</span></label>
+            <input type="text" class="form-control" [(ngModel)]="pickCasa" placeholder="Ej: Betplay, Rushbet, Wplay..." />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModalPick()">Cancelar</button>
+          <button type="button" class="btn btn-primary"
+                  [disabled]="publicando || !pickCuota || pickCuota < 1"
+                  (click)="publicarPick()">
+            @if (publicando) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            {{ publicando ? 'Publicando...' : 'Publicar Pick' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
 
 </div>

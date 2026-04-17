@@ -9,6 +9,7 @@
         <button
           class="btn btn-outline-secondary btn-sm"
           (click)="diagnosticarCuotas()"
+          [disabled]="ocupado"
           title="Muestra paso a paso por qué puede fallar la ingesta de cuotas"
         >
           Diagnóstico cuotas
@@ -18,7 +19,7 @@
         <button
           class="btn btn-outline-success btn-sm"
           (click)="ingestarCuotas()"
-          [disabled]="ingiriendo"
+          [disabled]="ocupado"
           title="Selecciona las ligas y descarga sus cuotas desde la API"
         >
           @if (ingiriendo) {
@@ -31,7 +32,7 @@
         <button
           class="btn btn-primary btn-sm"
           (click)="ejecutarAnalisis()"
-          [disabled]="ejecutando"
+          [disabled]="ocupado"
         >
           @if (ejecutando) {
             <span class="spinner-border spinner-border-sm me-1" role="status"></span>
@@ -43,6 +44,67 @@
     }
   </div>
   <hr class="mb-3">
+
+  <!-- ═══ BARRA DE PROGRESO ═══════════════════════════════════════════════ -->
+  @if (progreso) {
+    <div class="card mb-4 border-0 shadow-sm"
+         [style.border-left]="'4px solid ' + (progreso.ejecutando ? '#0d6efd' : '#198754') + ' !important'"
+         style="border-left-width: 4px !important">
+      <div class="card-body py-3">
+
+        <!-- Encabezado: ícono + texto + porcentaje -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <div class="d-flex align-items-center gap-2">
+            @if (progreso.ejecutando) {
+              <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            } @else {
+              <i class="fa-solid fa-circle-check text-success"></i>
+            }
+            <span class="fw-semibold">
+              @if (progreso.fase === 'ANALISIS' && progreso.ejecutando) { Ejecutando análisis... }
+              @else if (progreso.fase === 'CUOTAS' && progreso.ejecutando) { Ingiriendo cuotas... }
+              @else if (!progreso.ejecutando) { ¡Proceso completado! }
+            </span>
+            @if (progreso.detalle && progreso.ejecutando) {
+              <span class="text-muted small d-none d-md-inline">— {{ progreso.detalle }}</span>
+            }
+          </div>
+          <span class="badge rounded-pill fw-bold"
+                [class.bg-primary]="progreso.ejecutando"
+                [class.bg-success]="!progreso.ejecutando"
+                style="font-size: 0.85rem; min-width: 3rem; text-align:center">
+            {{ progreso.porcentaje }}%
+          </span>
+        </div>
+
+        <!-- Barra de progreso -->
+        <div class="progress" style="height: 10px; border-radius: 6px;">
+          <div class="progress-bar"
+               [class.progress-bar-striped]="progreso.ejecutando"
+               [class.progress-bar-animated]="progreso.ejecutando"
+               [class.bg-primary]="progreso.ejecutando"
+               [class.bg-success]="!progreso.ejecutando"
+               role="progressbar"
+               [style.width]="progreso.porcentaje + '%'"
+               [attr.aria-valuenow]="progreso.porcentaje"
+               aria-valuemin="0" aria-valuemax="100">
+          </div>
+        </div>
+
+        <!-- Detalle: x de y partidos -->
+        @if (progreso.total > 0) {
+          <div class="text-muted small mt-2">
+            <strong>{{ progreso.progreso }}</strong> de <strong>{{ progreso.total }}</strong>
+            {{ progreso.fase === 'ANALISIS' ? 'partidos analizados' : 'partidos procesados' }}
+            @if (progreso.ejecutando && progreso.detalle) {
+              <span class="d-md-none ms-1">— {{ progreso.detalle }}</span>
+            }
+          </div>
+        }
+
+      </div>
+    </div>
+  }
 
   <!-- Panel de filtros -->
   <div class="card mb-4">

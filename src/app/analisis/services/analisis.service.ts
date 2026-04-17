@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Analisis, FiltroAnalisis, LigaDisponible } from '../interfaces/analisis.interface';
+import { Analisis, FiltroAnalisis, LigaDisponible, ProgresoAnalisis } from '../interfaces/analisis.interface';
 import { API_ENDPOINTS } from '../../utils/constantes-utils';
 import { environment } from '../../../environments/environment';
 
@@ -29,6 +29,11 @@ export class AnalisisService {
   ejecutar(ligaIds?: string[]): Observable<any> {
     const body = ligaIds && ligaIds.length > 0 ? { ligaIds } : {};
     return this.http.post(`${environment.URL}/${API_ENDPOINTS.ANALISIS}/ejecutar`, body);
+  }
+
+  /** Polling de progreso — llamar cada ~2s mientras ejecutando=true */
+  obtenerProgreso(): Observable<ProgresoAnalisis> {
+    return this.http.get<ProgresoAnalisis>(`${environment.URL}/${API_ENDPOINTS.ANALISIS}/progreso`);
   }
 
   ligasDisponiblesHoy(): Observable<LigaDisponible[]> {

@@ -18,6 +18,7 @@ export class PicksListarPage implements OnInit {
   public picks:        Pick[]              = [];
   public estadisticas: EstadisticasPick | null = null;
   public cargando:     boolean = false;
+  public resolviendo:  boolean = false;
   public esAdmin:      boolean = false;
 
   // Confirmación de liquidación
@@ -54,6 +55,40 @@ export class PicksListarPage implements OnInit {
     this.pickService.estadisticas().subscribe({
       next: (data) => { this.estadisticas = data; },
       error: (err) => console.error('Error al cargar estadísticas:', err)
+    });
+  }
+
+  // ── Resolución automática ─────────────────────────────────────────────────
+
+  resolverPendientes(): void {
+    const pendientes = this.picks.filter(p => p.resultado === 'PENDIENTE').length;
+    if (pendientes === 0) {
+      alert('No hay picks pendientes para resolver.');
+      return;
+    }
+    this.resolviendo = true;
+    this.pickService.resolverPendientes().subscribe({
+      next: (res) => {
+        this.resolviendo = false;
+        const msg = [
+          `✓ Resolución completada`,
+          `─────────────────────────`,
+          `Picks evaluados: ${res.picksResueltos}`,
+          `  ✅ Ganados:  ${res.ganados}`,
+          `  ❌ Perdidos: ${res.perdidos}`,
+          `  ➖ Nulos:    ${res.nulos}`,
+          res.pendientesAun > 0
+            ? `  ⏳ Aún pendientes (partido no finalizado): ${res.pendientesAun}`
+            : ''
+        ].filter(Boolean).join('\n');
+        alert(msg);
+        this.cargarTodo();
+      },
+      error: (err) => {
+        this.resolviendo = false;
+        console.error('Error al resolver picks:', err);
+        alert('Error: ' + (err.error?.error || err.error?.mensaje || 'Error desconocido'));
+      }
     });
   }
 

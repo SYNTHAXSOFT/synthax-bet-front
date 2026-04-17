@@ -1,9 +1,9 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AnalisisService } from '../../services/analisis.service';
 import { CuotaService, IngestaCuotasResultado } from '../../services/cuota.service';
-import { Analisis, LigaDisponible } from '../../interfaces/analisis.interface';
+import { Analisis, LigaDisponible, ProgresoAnalisis } from '../../interfaces/analisis.interface';
 import { AuthService } from '../../../auth/services/auth.service';
 import { CATEGORIA_ANALISIS, NIVEL_CONFIANZA } from '../../../utils/constantes-utils';
 
@@ -16,7 +16,7 @@ const LS_LIGAS_KEY = 'statbet_ligas_seleccionadas';
   imports: [CommonModule, FormsModule],
   templateUrl: './analisis-listar.html',
 })
-export class AnalisisListarPage implements OnInit {
+export class AnalisisListarPage implements OnInit, OnDestroy {
 
   private readonly analisisService = inject(AnalisisService);
   private readonly cuotaService    = inject(CuotaService);
@@ -31,6 +31,14 @@ export class AnalisisListarPage implements OnInit {
   public ejecutando:  boolean = false;
   public ingiriendo:  boolean = false;
   public esAdmin:     boolean = false;
+
+  // ── Progreso en tiempo real ──────────────────────────────────────────────
+  /** null = no hay proceso en curso ni reciente; objeto = mostrar barra */
+  public progreso: ProgresoAnalisis | null = null;
+  private progresoInterval?: ReturnType<typeof setInterval>;
+
+  /** Bloquea TODOS los botones mientras haya un proceso activo */
+  get ocupado(): boolean { return this.ejecutando || this.ingiriendo; }
 
   // ── Filtros de tabla ────────────────────────────────────────────────────
   public categoriaFiltro:   string = '';
@@ -68,15 +76,19 @@ export class AnalisisListarPage implements OnInit {
   }
 
   get tituloModal(): string {
-    return this.accionModal === 'analisis'
-      ? 'Seleccionar ligas para el análisis'
-      : 'Seleccionar ligas para ingestar cuotas';
+    if (this.accionModal === 'cuotas') return 'Seleccionar ligas para ingestar cuotas';
+    return this.analisisCompletos.length === 0
+      ? '🌅 Primer análisis del día — selecciona tus ligas'
+      : 'Re-ejecutar análisis — selecciona ligas';
   }
 
   get descripcionModal(): string {
-    return this.accionModal === 'analisis'
-      ? 'El motor solo analizará los partidos de las ligas que selecciones.'
-      : 'Solo se descargarán cuotas de la API para los partidos de las ligas seleccionadas.';
+    if (this.accionModal === 'cuotas') {
+      return 'Solo se descargarán cuotas de la API para los partidos de las ligas seleccionadas.';
+    }
+    return this.analisisCompletos.length === 0
+      ? 'No hay análisis para hoy. Selecciona las ligas que quieres analizar y presiona Ejecutar. Solo se procesarán esas ligas (2–5 min).'
+      : 'El motor re-analizará los partidos de las ligas que selecciones, reemplazando los análisis actuales.';
   }
 
   get ligasPorPais(): { pais: string; ligas: LigaDisponible[] }[] {
@@ -106,6 +118,48 @@ export class AnalisisListarPage implements OnInit {
     this.cargarAnalisis();
   }
 
+  ngOnDestroy(): void {
+    this.detenerPolling();
+  }
+
+  // ────────────────────────────────────────────────────────────────────────
+  // Polling de progreso
+  // ────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Inicia el polling al backend cada 2 segundos para actualizar la barra de progreso.
+   * Se llama justo antes de lanzar el POST /ejecutar o POST /ingestar.
+   */
+  private iniciarPolling(): void {
+    this.detenerPolling(); // por si había uno anterior
+    this.progresoInterval = setInterval(() => {
+      this.analisisService.obtenerProgreso().subscribe({
+        next: (p) => { this.progreso = p; },
+        error: () => { /* ignorar errores de polling */ }
+      });
+    }, 2000);
+  }
+
+  /**
+   * Detiene el polling. Se llama cuando el POST principal termina (éxito o error).
+   * Tras detenerlo, la barra queda en 100% y se oculta automáticamente a los 3 s.
+   */
+  private detenerPolling(): void {
+    if (this.progresoInterval !== undefined) {
+      clearInterval(this.progresoInterval);
+      this.progresoInterval = undefined;
+    }
+  }
+
+  /** Marca la barra como completada (100%) y la oculta después de 3 segundos. */
+  private completarYOcultarBarra(): void {
+    this.detenerPolling();
+    if (this.progreso) {
+      this.progreso = { ...this.progreso, ejecutando: false, porcentaje: 100, detalle: 'Completado' };
+    }
+    setTimeout(() => { this.progreso = null; }, 3000);
+  }
+
   // ────────────────────────────────────────────────────────────────────────
   // Tabla de análisis
   // ────────────────────────────────────────────────────────────────────────
@@ -117,6 +171,13 @@ export class AnalisisListarPage implements OnInit {
         this.analisisCompletos = data;
         this.aplicarFiltros();
         this.cargando = false;
+
+        // Si no hay análisis para hoy Y el usuario es admin Y no hay un proceso
+        // en curso, abrir automáticamente el modal de selección de ligas para que
+        // elija qué analizar. Esto reemplaza el auto-lanzamiento masivo del backend.
+        if (data.length === 0 && this.esAdmin && !this.ocupado) {
+          this.abrirModalLigas('analisis');
+        }
       },
       error: (err) => {
         console.error('Error al cargar análisis:', err);
@@ -289,18 +350,15 @@ export class AnalisisListarPage implements OnInit {
   }
 
   private ejecutarConLigas(ligaIds: string[]): void {
-    const nombres = this.ligasDisponibles
-      .filter(l => ligaIds.includes(l.idLigaApi))
-      .map(l => l.nombre)
-      .join(', ');
-
-    if (!confirm(`¿Ejecutar análisis para:\n${nombres}?\n\nEsto puede tardar unos segundos.`)) return;
-
+    // Mostrar estado inicial en la barra antes de que el primer polling responda
+    this.progreso = { ejecutando: true, fase: 'ANALISIS', progreso: 0, total: 0, porcentaje: 0, detalle: 'Iniciando...' };
     this.ejecutando = true;
+    this.iniciarPolling();
+
     this.analisisService.ejecutar(ligaIds).subscribe({
       next: (res) => {
-        alert(`✓ Análisis ejecutado:\n${res.analisesGenerados} análisis generados para ${this.totalSeleccionadas} ligas.`);
         this.ejecutando = false;
+        this.completarYOcultarBarra();
         this.limpiarFiltros();
         this.cargarAnalisis();
       },
@@ -308,6 +366,7 @@ export class AnalisisListarPage implements OnInit {
         console.error('Error al ejecutar análisis:', err);
         alert('Error: ' + (err.error?.mensaje || err.error?.error || 'Error desconocido'));
         this.ejecutando = false;
+        this.completarYOcultarBarra();
       }
     });
   }
@@ -321,10 +380,14 @@ export class AnalisisListarPage implements OnInit {
   }
 
   private ingestarConLigas(ligaIds: string[]): void {
+    this.progreso = { ejecutando: true, fase: 'CUOTAS', progreso: 0, total: 0, porcentaje: 0, detalle: 'Iniciando...' };
     this.ingiriendo = true;
+    this.iniciarPolling();
+
     this.cuotaService.ingestar(ligaIds).subscribe({
       next: (res: IngestaCuotasResultado) => {
         this.ingiriendo = false;
+        this.completarYOcultarBarra();
         const msg = this.construirMensajeIngesta(res);
         alert(msg);
       },
@@ -332,6 +395,7 @@ export class AnalisisListarPage implements OnInit {
         console.error('Error al ingestar cuotas:', err);
         alert('Error: ' + (err.error?.mensaje || err.error?.message || 'Error desconocido'));
         this.ingiriendo = false;
+        this.completarYOcultarBarra();
       }
     });
   }

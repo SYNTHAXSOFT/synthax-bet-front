@@ -69,6 +69,21 @@ export class RendimientoPage implements OnInit {
     });
   }
 
+  reactivarPick(id: number): void {
+    if (!confirm('¿Reactivar este pick como PENDIENTE para que sea re-evaluado?')) return;
+    this.pickService.reactivar(id).subscribe({
+      next: () => {
+        this.mensaje = '✓ Pick reactivado a PENDIENTE. Pulsa "Actualizar resultados" para re-evaluarlo.';
+        this.tipoMensaje = 'info';
+        this.cargarDatos();
+      },
+      error: (err) => {
+        this.mensaje = 'Error al reactivar: ' + (err.error?.error || 'Error desconocido');
+        this.tipoMensaje = 'warning';
+      }
+    });
+  }
+
   // ── Filtros ──────────────────────────────────────────────────────────────
 
   get picksPendientes(): Pick[] {

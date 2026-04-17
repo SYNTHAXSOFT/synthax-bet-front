@@ -2,9 +2,31 @@
 
   <div class="d-flex justify-content-between align-items-center mb-2">
     <h2 class="mb-0">Picks publicados</h2>
-    <button class="btn btn-outline-primary btn-sm" (click)="cargarTodo()">
-      <i class="fa-solid fa-rotate-right me-1"></i> Actualizar
-    </button>
+    <div class="d-flex gap-2">
+
+      @if (esAdmin) {
+        <!-- Resolver picks pendientes automáticamente desde la API -->
+        <button class="btn btn-outline-warning btn-sm"
+                (click)="resolverPendientes()"
+                [disabled]="resolviendo || cargando"
+                title="Consulta la API para resolver automáticamente todos los picks pendientes cuyos partidos ya terminaron">
+          @if (resolviendo) {
+            <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+            Resolviendo...
+          } @else {
+            <i class="fa-solid fa-wand-magic-sparkles me-1"></i>
+            Resolver pendientes
+          }
+        </button>
+      }
+
+      <button class="btn btn-outline-primary btn-sm"
+              (click)="cargarTodo()"
+              [disabled]="resolviendo">
+        <i class="fa-solid fa-rotate-right me-1"></i> Actualizar
+      </button>
+
+    </div>
   </div>
   <hr class="mb-4">
 
