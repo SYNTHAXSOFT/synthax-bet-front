@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Analisis, FiltroAnalisis, LigaDisponible, ProgresoAnalisis } from '../interfaces/analisis.interface';
+import { Analisis, FiltroAnalisis, LigaDisponible, ProgresoAnalisis, ResolucionAnalisis } from '../interfaces/analisis.interface';
 import { API_ENDPOINTS } from '../../utils/constantes-utils';
 import { environment } from '../../../environments/environment';
 
@@ -34,6 +34,39 @@ export class AnalisisService {
   /** Polling de progreso — llamar cada ~2s mientras ejecutando=true */
   obtenerProgreso(): Observable<ProgresoAnalisis> {
     return this.http.get<ProgresoAnalisis>(`${environment.URL}/${API_ENDPOINTS.ANALISIS}/progreso`);
+  }
+
+  /** Carga y evalúa el último batch de análisis contra los resultados reales. */
+  resolver(): Observable<ResolucionAnalisis[]> {
+    return this.http.get<ResolucionAnalisis[]>(
+      `${environment.URL}/${API_ENDPOINTS.ANALISIS}/resolver`
+    );
+  }
+
+  /**
+   * Descarga el CSV de diagnóstico con sugerencias + estadísticas de equipos
+   * + lambdas calculadas + datos del árbitro. Usar con responseType 'blob'.
+   */
+  descargarDiagnostico(): Observable<Blob> {
+    return this.http.get(
+      `${environment.URL}/${API_ENDPOINTS.ANALISIS}/resolver/exportar`,
+      { responseType: 'blob' }
+    );
+  }
+
+  /** Devuelve el historial persistido para una fecha específica (yyyy-MM-dd). */
+  obtenerHistorial(fecha: string): Observable<ResolucionAnalisis[]> {
+    return this.http.get<ResolucionAnalisis[]>(
+      `${environment.URL}/${API_ENDPOINTS.ANALISIS}/resolver/historial`,
+      { params: { fecha } }
+    );
+  }
+
+  /** Devuelve la lista de fechas con historial disponible, más reciente primero. */
+  obtenerFechasHistorial(): Observable<string[]> {
+    return this.http.get<string[]>(
+      `${environment.URL}/${API_ENDPOINTS.ANALISIS}/resolver/historial/fechas`
+    );
   }
 
   ligasDisponiblesHoy(): Observable<LigaDisponible[]> {

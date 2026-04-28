@@ -1,7 +1,7 @@
-<div class="container-fluid px-4">
+<div class="container-fluid px-2 px-md-4">
 
   <!-- Cabecera -->
-  <div class="d-flex justify-content-between align-items-center mb-2">
+  <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-2">
     <div>
       <h2 class="mb-0">Personalizar Sugerencias</h2>
       <p class="text-muted small mb-0">Configura los filtros y genera combinadas a tu medida</p>
@@ -74,136 +74,146 @@
           <div class="form-text">Solo aplica a dobles y triples</div>
         </div>
 
-        <!-- Buscar liga (select buscable) -->
+        <!-- Buscar liga (multi-select buscable) -->
         <div class="col-12 col-md-6 col-xl-3">
           <label class="form-label fw-semibold">
             <i class="fa-solid fa-earth-americas me-1 text-muted"></i>
-            Liga (opcional)
+            Liga(s) <span class="fw-normal text-muted">(opcional)</span>
           </label>
 
-          <!-- Contenedor relativo para posicionar el dropdown -->
-          <div class="position-relative">
+          <!-- Tags de ligas seleccionadas -->
+          @if (ligasSeleccionadas.length > 0) {
+            <div class="d-flex flex-wrap gap-1 mb-2">
+              @for (liga of ligasSeleccionadas; track liga) {
+                <span class="badge d-flex align-items-center gap-1"
+                      style="background:#e8f0fe; color:#1d4ed8; font-size:0.78rem; font-weight:500; padding:0.35rem 0.55rem; border-radius:20px">
+                  <i class="fa-solid fa-trophy" style="font-size:0.65rem"></i>
+                  {{ liga }}
+                  <button type="button" class="btn-close btn-close-sm ms-1"
+                          style="font-size:0.55rem"
+                          (click)="quitarLiga(liga)"></button>
+                </span>
+              }
+              <button type="button" class="btn btn-link btn-sm p-0 text-danger"
+                      style="font-size:0.75rem" (click)="limpiarLiga()">
+                limpiar todo
+              </button>
+            </div>
+          }
 
+          <div class="position-relative">
             <div class="input-group">
               <span class="input-group-text"><i class="fa-solid fa-trophy"></i></span>
               <input type="text"
                      class="form-control"
-                     [class.border-primary]="ligaSeleccionada"
+                     [class.border-primary]="ligasSeleccionadas.length > 0"
                      [(ngModel)]="ligaTexto"
                      (input)="onLigaInput()"
                      (focus)="onLigaFocus()"
-                     placeholder="Buscar liga..."
+                     placeholder="Buscar y agregar liga..."
                      autocomplete="off">
-              <!-- Botón limpiar (solo visible si hay texto) -->
-              @if (ligaTexto) {
-                <button type="button" class="btn btn-outline-secondary"
-                        (click)="limpiarLiga()" title="Limpiar">
-                  <i class="fa-solid fa-xmark"></i>
-                </button>
-              }
             </div>
 
-            <!-- Dropdown de resultados -->
             @if (mostrarDropdownLiga && ligasFiltradas.length > 0) {
               <div class="position-absolute w-100 border rounded bg-white shadow-sm"
                    style="z-index:1050; max-height:220px; overflow-y:auto; top:calc(100% + 2px)">
                 @for (liga of ligasFiltradas; track liga) {
                   <button type="button"
                           class="d-block w-100 text-start px-3 py-2 border-0 bg-transparent"
-                          [class.bg-primary]="liga === ligaSeleccionada"
-                          [class.text-white]="liga === ligaSeleccionada"
                           style="font-size:0.9rem; cursor:pointer"
                           (mousedown)="seleccionarLiga(liga)">
-                    <i class="fa-solid fa-flag me-2 opacity-50"></i>{{ liga }}
+                    <i class="fa-solid fa-plus me-2 text-success opacity-75"></i>{{ liga }}
                   </button>
                 }
               </div>
             }
 
-            <!-- Mensaje si no hay coincidencias -->
             @if (mostrarDropdownLiga && ligaTexto && ligasFiltradas.length === 0) {
               <div class="position-absolute w-100 border rounded bg-white shadow-sm px-3 py-2 text-muted small"
                    style="z-index:1050; top:calc(100% + 2px)">
-                <i class="fa-solid fa-circle-info me-1"></i>
-                No se encontró "{{ ligaTexto }}"
+                <i class="fa-solid fa-circle-info me-1"></i>No se encontró "{{ ligaTexto }}"
               </div>
             }
-
           </div>
 
           <div class="form-text">
-            @if (ligaSeleccionada) {
-              <span class="text-primary fw-semibold">
-                <i class="fa-solid fa-check me-1"></i>{{ ligaSeleccionada }}
-              </span>
+            @if (ligasSeleccionadas.length > 0) {
+              Solo partidos de {{ ligasSeleccionadas.length === 1 ? 'esta liga' : 'estas ligas' }}
             } @else {
-              Todas las patas serán de esa liga
+              Todas las ligas disponibles
             }
           </div>
         </div>
 
-        <!-- Buscar equipo (select buscable) -->
+        <!-- Buscar equipo (multi-select buscable) -->
         <div class="col-12 col-md-6 col-xl-3">
           <label class="form-label fw-semibold">
             <i class="fa-solid fa-shield-halved me-1 text-muted"></i>
-            Equipo (opcional)
+            Equipo(s) <span class="fw-normal text-muted">(opcional)</span>
           </label>
 
-          <div class="position-relative">
+          <!-- Tags de equipos seleccionados -->
+          @if (equiposSeleccionados.length > 0) {
+            <div class="d-flex flex-wrap gap-1 mb-2">
+              @for (equipo of equiposSeleccionados; track equipo) {
+                <span class="badge d-flex align-items-center gap-1"
+                      style="background:#e8f0fe; color:#1d4ed8; font-size:0.78rem; font-weight:500; padding:0.35rem 0.55rem; border-radius:20px">
+                  <i class="fa-solid fa-shield-halved" style="font-size:0.65rem"></i>
+                  {{ equipo }}
+                  <button type="button" class="btn-close btn-close-sm ms-1"
+                          style="font-size:0.55rem"
+                          (click)="quitarEquipo(equipo)"></button>
+                </span>
+              }
+              <button type="button" class="btn btn-link btn-sm p-0 text-danger"
+                      style="font-size:0.75rem" (click)="limpiarEquipo()">
+                limpiar todo
+              </button>
+            </div>
+          }
 
+          <div class="position-relative">
             <div class="input-group">
               <span class="input-group-text"><i class="fa-solid fa-shield-halved"></i></span>
               <input type="text"
                      class="form-control"
-                     [class.border-primary]="equipoSeleccionado"
+                     [class.border-primary]="equiposSeleccionados.length > 0"
                      [(ngModel)]="equipoTexto"
                      (input)="onEquipoInput()"
                      (focus)="onEquipoFocus()"
-                     placeholder="Buscar equipo..."
+                     placeholder="Buscar y agregar equipo..."
                      autocomplete="off">
-              @if (equipoTexto) {
-                <button type="button" class="btn btn-outline-secondary"
-                        (click)="limpiarEquipo()" title="Limpiar">
-                  <i class="fa-solid fa-xmark"></i>
-                </button>
-              }
             </div>
 
-            <!-- Dropdown de resultados -->
             @if (mostrarDropdownEquipo && equiposFiltrados.length > 0) {
               <div class="position-absolute w-100 border rounded bg-white shadow-sm"
                    style="z-index:1050; max-height:220px; overflow-y:auto; top:calc(100% + 2px)">
                 @for (equipo of equiposFiltrados; track equipo) {
                   <button type="button"
                           class="d-block w-100 text-start px-3 py-2 border-0 bg-transparent"
-                          [class.bg-primary]="equipo === equipoSeleccionado"
-                          [class.text-white]="equipo === equipoSeleccionado"
                           style="font-size:0.9rem; cursor:pointer"
                           (mousedown)="seleccionarEquipo(equipo)">
-                    <i class="fa-solid fa-shield-halved me-2 opacity-50"></i>{{ equipo }}
+                    <i class="fa-solid fa-plus me-2 text-success opacity-75"></i>{{ equipo }}
                   </button>
                 }
               </div>
             }
 
-            <!-- Mensaje si no hay coincidencias -->
             @if (mostrarDropdownEquipo && equipoTexto && equiposFiltrados.length === 0) {
               <div class="position-absolute w-100 border rounded bg-white shadow-sm px-3 py-2 text-muted small"
                    style="z-index:1050; top:calc(100% + 2px)">
-                <i class="fa-solid fa-circle-info me-1"></i>
-                No se encontró "{{ equipoTexto }}"
+                <i class="fa-solid fa-circle-info me-1"></i>No se encontró "{{ equipoTexto }}"
               </div>
             }
-
           </div>
 
           <div class="form-text">
-            @if (equipoSeleccionado) {
-              <span class="text-primary fw-semibold">
-                <i class="fa-solid fa-check me-1"></i>{{ equipoSeleccionado }}
-              </span>
+            @if (equiposSeleccionados.length === 1) {
+              Mercados del partido de <strong>{{ equiposSeleccionados[0] }}</strong>
+            } @else if (equiposSeleccionados.length > 1) {
+              Combinando {{ equiposSeleccionados.length }} equipos
             } @else {
-              Al menos una pata incluirá este equipo
+              Todos los partidos disponibles
             }
           </div>
         </div>
@@ -383,7 +393,12 @@
                 @for (linea of sug.selecciones; track linea.idPartido) {
                   <div class="p-3 border-bottom">
                     <div class="fw-semibold">{{ linea.partido }}</div>
-                    <div class="text-muted small">{{ linea.liga }}</div>
+                    <div class="text-muted small d-flex align-items-center gap-2 flex-wrap">
+                      <span>{{ linea.liga }}</span>
+                      @if (linea.horaPartido) {
+                        <span style="font-size:0.7rem"><i class="fa-regular fa-clock me-1"></i>{{ linea.horaPartido }}</span>
+                      }
+                    </div>
                     <div class="d-flex flex-wrap gap-1 mt-2 align-items-center">
                       <span [class]="getBadgeCategoria(linea.categoria)" style="font-size:0.7rem">
                         {{ getLabelCategoria(linea.categoria) }}
@@ -449,7 +464,7 @@
 @if (mostrarModalPick && lineaSeleccionada) {
   <div class="modal-backdrop fade show" (click)="cerrarModalPick()"></div>
   <div class="modal fade show d-block" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">

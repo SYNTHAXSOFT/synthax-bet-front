@@ -1,8 +1,8 @@
-<div class="container-fluid px-4">
+<div class="container-fluid px-2 px-md-4">
 
-  <div class="d-flex justify-content-between align-items-center mb-2">
+  <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-2">
     <h2 class="mb-0">Picks publicados</h2>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 flex-wrap">
 
       @if (esAdmin) {
         <!-- Resolver picks pendientes automáticamente desde la API -->
@@ -129,10 +129,10 @@
       <table class="table table-hover table-bordered align-middle">
         <thead class="table-dark">
           <tr>
-            <th>Fecha</th>
+            <th class="d-none d-md-table-cell">Fecha</th>
             <th>Partido</th>
             <th>Mercado</th>
-            <th class="text-center">Prob.</th>
+            <th class="text-center d-none d-md-table-cell">Prob.</th>
             <th class="text-center">Cuota</th>
             <th class="text-center">Canal</th>
             <th class="text-center">Resultado</th>
@@ -146,7 +146,7 @@
             <tr [class.table-success]="pick.resultado === 'GANADO'"
                 [class.table-danger]="pick.resultado === 'PERDIDO'"
                 [class.table-warning]="pick.resultado === 'PENDIENTE'">
-              <td class="small text-nowrap">{{ formatFecha(pick.publicadoEn) }}</td>
+              <td class="small text-nowrap d-none d-md-table-cell">{{ formatFecha(pick.publicadoEn) }}</td>
               <td class="small">
                 <span class="fw-semibold">{{ pick.partido.equipoLocal }}</span>
                 <span class="text-muted"> vs </span>
@@ -154,9 +154,11 @@
                 @if (pick.casaApuestas && pick.casaApuestas !== 'Sin especificar') {
                   <div class="text-muted" style="font-size:0.75rem">{{ pick.casaApuestas }}</div>
                 }
+                <!-- Fecha inline en móvil -->
+                <div class="d-md-none text-muted" style="font-size:0.7rem">{{ formatFecha(pick.publicadoEn) }}</div>
               </td>
               <td class="small fw-semibold">{{ pick.nombreMercado }}</td>
-              <td class="text-center small fw-semibold">
+              <td class="text-center small fw-semibold d-none d-md-table-cell">
                 {{ (pick.probabilidad * 100).toFixed(1) }}%
               </td>
               <td class="text-center fw-bold">

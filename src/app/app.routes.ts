@@ -97,6 +97,17 @@ export const routes: Routes = [
       },
 
       {
+        path: 'resolver-analisis',
+        title: 'Resolver análisis',
+        loadComponent: () =>
+          import('./analisis/pages/resolver-analisis/resolver-analisis').then(
+            (m) => m.ResolverAnalisisPage
+          ),
+        canActivate: [RoleGuard],
+        data: { roles: ['ROOT', 'ADMINISTRADOR'] },
+      },
+
+      {
         path: 'usuario',
         title: 'Usuarios',
         loadChildren: () =>

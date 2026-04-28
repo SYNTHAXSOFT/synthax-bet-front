@@ -1,12 +1,12 @@
-<div class="container-fluid px-4">
+<div class="container-fluid px-2 px-md-4">
 
   <!-- ═══ ENCABEZADO ═══════════════════════════════════════════════════════ -->
-  <div class="d-flex justify-content-between align-items-center mb-2">
+  <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-2">
     <div>
       <h2 class="mb-0">Rendimiento</h2>
       <p class="text-muted small mb-0">Historial y seguimiento automático de picks</p>
     </div>
-    <button class="btn btn-primary"
+    <button class="btn btn-primary btn-sm"
             (click)="resolverPendientes()"
             [disabled]="resolviendo">
       @if (resolviendo) {
@@ -147,7 +147,7 @@
 
   <!-- ═══ TABLA DE PICKS ════════════════════════════════════════════════════ -->
   <div class="card border-0 shadow-sm">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+    <div class="card-header bg-white d-flex flex-wrap gap-2 justify-content-between align-items-center py-3">
       <span class="fw-semibold">
         <i class="fa-solid fa-list me-2"></i>
         Historial completo
@@ -155,7 +155,7 @@
           <span class="spinner-border spinner-border-sm ms-2 text-muted"></span>
         }
       </span>
-      <div class="d-flex gap-2 align-items-center">
+      <div class="d-flex gap-2 align-items-center flex-wrap">
         <span class="badge bg-warning text-dark">{{ picksPendientes.length }} pendientes</span>
         <span class="badge bg-success">{{ picksGanados.length }} ganados</span>
         <span class="badge bg-danger">{{ picksPerdidos.length }} perdidos</span>
@@ -167,21 +167,21 @@
         <thead class="table-light">
           <tr>
             <th class="ps-3">Partido</th>
-            <th>Liga</th>
+            <th class="d-none d-md-table-cell">Liga</th>
             <th>Mercado</th>
-            <th>Categoría</th>
+            <th class="d-none d-lg-table-cell">Categoría</th>
             <th class="text-center">Prob.</th>
-            <th class="text-center">Edge</th>
-            <th class="text-center">Cuota</th>
-            <th>Casa</th>
+            <th class="text-center d-none d-md-table-cell">Edge</th>
+            <th class="text-center d-none d-md-table-cell">Cuota</th>
+            <th class="d-none d-md-table-cell">Casa</th>
             <th class="text-center">Resultado</th>
-            <th class="text-end pe-3">Fecha</th>
+            <th class="text-end pe-3 d-none d-lg-table-cell">Fecha</th>
           </tr>
         </thead>
         <tbody>
           @if (!cargando && picks.length === 0) {
             <tr>
-              <td colspan="10" class="text-center text-muted py-5">
+              <td colspan="10" class="text-center text-muted py-4">
                 <i class="fa-solid fa-inbox fs-2 d-block mb-2"></i>
                 No hay picks registrados todavía
               </td>
@@ -200,17 +200,21 @@
               </td>
 
               <!-- Liga -->
-              <td>
+              <td class="d-none d-md-table-cell">
                 <span class="text-muted small">{{ pick.partido?.liga || '—' }}</span>
               </td>
 
               <!-- Mercado -->
               <td>
                 <span class="small fw-semibold">{{ pick.nombreMercado }}</span>
+                <!-- Cuota inline en móvil -->
+                <div class="d-md-none text-muted" style="font-size:0.72rem">
+                  @{{ pick.valorCuota | number:'1.2-2' }} · {{ pick.casaApuestas || '—' }}
+                </div>
               </td>
 
               <!-- Categoría -->
-              <td>
+              <td class="d-none d-lg-table-cell">
                 <span [class]="getBadgeCategoria(pick.categoriaMercado)" style="font-size:0.7rem">
                   {{ pick.categoriaMercado || '—' }}
                 </span>
@@ -222,19 +226,19 @@
               </td>
 
               <!-- Edge -->
-              <td class="text-center small fw-semibold"
+              <td class="text-center small fw-semibold d-none d-md-table-cell"
                   [class.text-success]="(pick.edge ?? 0) >= 0.10"
                   [class.text-primary]="(pick.edge ?? 0) >= 0.05 && (pick.edge ?? 0) < 0.10">
                 {{ edgePct(pick.edge) }}
               </td>
 
               <!-- Cuota -->
-              <td class="text-center small">
+              <td class="text-center small d-none d-md-table-cell">
                 {{ pick.valorCuota | number:'1.2-2' }}
               </td>
 
               <!-- Casa -->
-              <td class="small text-muted">{{ pick.casaApuestas || '—' }}</td>
+              <td class="small text-muted d-none d-md-table-cell">{{ pick.casaApuestas || '—' }}</td>
 
               <!-- Resultado -->
               <td class="text-center">
@@ -251,7 +255,7 @@
               </td>
 
               <!-- Fecha publicación -->
-              <td class="text-end pe-3 small text-muted">
+              <td class="text-end pe-3 small text-muted d-none d-lg-table-cell">
                 {{ formatFecha(pick.publicadoEn) }}
               </td>
             </tr>

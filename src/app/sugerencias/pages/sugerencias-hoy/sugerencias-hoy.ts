@@ -97,12 +97,14 @@ export class SugerenciasHoyPage implements OnInit {
     const linea = this.lineaSeleccionada;
 
     this.pickService.crear({
-      partidoId:    linea.idPartido,
-      nombreMercado: linea.mercado,
-      probabilidad:  linea.probabilidad,
-      valorCuota:    this.pickCuota,
-      casaApuestas:  this.pickCasa || 'Sin especificar',
-      canal:         this.pickCanal,
+      partidoId:        linea.idPartido,
+      nombreMercado:    linea.mercado,
+      probabilidad:     linea.probabilidad,
+      edge:             linea.edge,
+      valorCuota:       this.pickCuota,
+      casaApuestas:     this.pickCasa || 'Sin especificar',
+      canal:            this.pickCanal,
+      categoriaMercado: linea.categoria,
     }).subscribe({
       next: () => {
         alert(`✓ Pick publicado correctamente en canal ${this.pickCanal}`);

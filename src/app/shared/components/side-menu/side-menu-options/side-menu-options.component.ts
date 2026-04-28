@@ -32,6 +32,7 @@ export class SideMenuOptionsComponent {
   reactiveMenu: MenuItem[] = reactiveItems
   .filter((item) => item.path && item.path !== '**' && !item.redirectTo)
   .filter((item) => item.path !== 'notificaciones')
+  .filter((item) => item.path !== 'picks')
   .map((item) => ({
     route: `statbet/${item.path}`,
     title: `${item.title}`,
@@ -71,6 +72,7 @@ export class SideMenuOptionsComponent {
     if (lowerName.includes('sugerencia')) return 'fa-solid fa-lightbulb';
     if (lowerName.includes('pick')) return 'fa-solid fa-bullseye';
     if (lowerName.includes('rendimiento')) return 'fa-solid fa-chart-bar';
+    if (lowerName.includes('resolver')) return 'fa-solid fa-magnifying-glass-chart';
     if (lowerName.includes('usuario')) return 'fa-solid fa-users';
     if (lowerName.includes('notificaciones')) return 'fa-solid fa-bell';
 

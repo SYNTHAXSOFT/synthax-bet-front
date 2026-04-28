@@ -1,7 +1,7 @@
-<div class="container-fluid px-4">
+<div class="container-fluid px-2 px-md-4">
 
   <!-- Cabecera -->
-  <div class="d-flex justify-content-between align-items-center mb-2">
+  <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-2">
     <div>
       <h2 class="mb-0">Sugerencias del día</h2>
       <p class="text-muted small mb-0">Combinadas generadas por el motor de análisis</p>
@@ -97,7 +97,14 @@
                    style="background: rgba(255,255,255,0.08)">
                 <div class="flex-fill">
                   <div class="fw-bold">{{ linea.partido }}</div>
-                  <div class="small opacity-75">{{ linea.liga }}</div>
+                  <div class="small opacity-75 d-flex align-items-center gap-2 flex-wrap">
+                    <span>{{ linea.liga }}</span>
+                    @if (linea.horaPartido) {
+                      <span style="font-size:0.7rem">
+                        <i class="fa-regular fa-clock me-1"></i>{{ linea.horaPartido }}
+                      </span>
+                    }
+                  </div>
                 </div>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                   <span [class]="getBadgeCategoria(linea.categoria)">{{ getLabelCategoria(linea.categoria) }}</span>
@@ -211,7 +218,12 @@
                 @for (linea of sug.selecciones; track linea.idPartido) {
                   <div class="p-3 border-bottom">
                     <div class="fw-semibold small">{{ linea.partido }}</div>
-                    <div class="text-muted" style="font-size: 0.75rem">{{ linea.liga }}</div>
+                    <div class="text-muted d-flex align-items-center gap-2 flex-wrap" style="font-size: 0.75rem">
+                      <span>{{ linea.liga }}</span>
+                      @if (linea.horaPartido) {
+                        <span><i class="fa-regular fa-clock me-1"></i>{{ linea.horaPartido }}</span>
+                      }
+                    </div>
                     <div class="d-flex flex-wrap gap-1 mt-1 align-items-center">
                       <span [class]="getBadgeCategoria(linea.categoria)" style="font-size:0.7rem">
                         {{ getLabelCategoria(linea.categoria) }}
@@ -278,7 +290,7 @@
   <div class="modal-backdrop fade show" (click)="cerrarModalPick()"></div>
 
   <div class="modal fade show d-block" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
       <div class="modal-content">
 
         <div class="modal-header">

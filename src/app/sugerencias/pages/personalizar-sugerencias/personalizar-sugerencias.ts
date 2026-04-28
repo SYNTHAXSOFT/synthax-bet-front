@@ -41,19 +41,19 @@ export class PersonalizarSugerenciasPage implements OnInit {
     { value: 'PREMIUM', label: 'PREMIUM — máxima confianza' },
   ];
 
-  // ── Ligas (select buscable) ───────────────────────────────────────────────
-  public todasLasLigas: string[]   = [];   // lista completa cargada del backend
-  public ligasFiltradas: string[]  = [];   // lista que se muestra según lo escrito
-  public ligaTexto      = '';              // texto visible en el input
-  public ligaSeleccionada = '';            // valor que se envía al backend
-  public mostrarDropdownLiga = false;      // controla si el panel está abierto
+  // ── Ligas (multi-select buscable) ────────────────────────────────────────
+  public todasLasLigas: string[]    = [];
+  public ligasFiltradas: string[]   = [];
+  public ligaTexto                  = '';
+  public ligasSeleccionadas: string[] = [];   // multi-selección
+  public mostrarDropdownLiga        = false;
 
-  // ── Equipos (select buscable) ─────────────────────────────────────────────
-  public todosLosEquipos: string[]   = [];
-  public equiposFiltrados: string[]  = [];
-  public equipoTexto      = '';
-  public equipoSeleccionado = '';
-  public mostrarDropdownEquipo = false;
+  // ── Equipos (multi-select buscable) ──────────────────────────────────────
+  public todosLosEquipos: string[]    = [];
+  public equiposFiltrados: string[]   = [];
+  public equipoTexto                  = '';
+  public equiposSeleccionados: string[] = [];  // multi-selección
+  public mostrarDropdownEquipo        = false;
 
   // ── Categorías disponibles ───────────────────────────────────────────────
   public categoriaOpciones = [
@@ -104,57 +104,67 @@ export class PersonalizarSugerenciasPage implements OnInit {
     this.ligasFiltradas = texto
       ? this.todasLasLigas.filter(l => l.toLowerCase().includes(texto))
       : this.todasLasLigas;
-    this.ligaSeleccionada = '';          // se limpia hasta que elija una opción
     this.mostrarDropdownLiga = true;
   }
 
-  /** Cuando el usuario hace foco en el campo */
   onLigaFocus(): void {
-    this.ligasFiltradas    = this.todasLasLigas;
+    this.ligasFiltradas    = this.todasLasLigas.filter(l => !this.ligasSeleccionadas.includes(l));
     this.mostrarDropdownLiga = true;
   }
 
-  /** Cuando el usuario elige una liga de la lista */
   seleccionarLiga(liga: string): void {
-    this.ligaTexto        = liga;
-    this.ligaSeleccionada = liga;
+    if (!this.ligasSeleccionadas.includes(liga)) {
+      this.ligasSeleccionadas.push(liga);
+    }
+    this.ligaTexto       = '';
+    this.ligasFiltradas  = this.todasLasLigas.filter(l => !this.ligasSeleccionadas.includes(l));
     this.mostrarDropdownLiga = false;
   }
 
-  /** Limpiar la liga seleccionada */
+  quitarLiga(liga: string): void {
+    this.ligasSeleccionadas = this.ligasSeleccionadas.filter(l => l !== liga);
+  }
+
   limpiarLiga(): void {
     this.ligaTexto           = '';
-    this.ligaSeleccionada    = '';
+    this.ligasSeleccionadas  = [];
     this.ligasFiltradas      = this.todasLasLigas;
     this.mostrarDropdownLiga = false;
   }
 
-  // ── Lógica del select buscable de Equipo ──────────────────────────────────
+  // ── Lógica multi-select de Equipo ─────────────────────────────────────────
 
   onEquipoInput(): void {
     const texto = this.equipoTexto.toLowerCase().trim();
-    this.equiposFiltrados = texto
+    this.equiposFiltrados = (texto
       ? this.todosLosEquipos.filter(e => e.toLowerCase().includes(texto))
-      : this.todosLosEquipos;
-    this.equipoSeleccionado = '';
+      : this.todosLosEquipos
+    ).filter(e => !this.equiposSeleccionados.includes(e));
     this.mostrarDropdownEquipo = true;
   }
 
   onEquipoFocus(): void {
-    this.equiposFiltrados      = this.todosLosEquipos;
+    this.equiposFiltrados      = this.todosLosEquipos.filter(e => !this.equiposSeleccionados.includes(e));
     this.mostrarDropdownEquipo = true;
   }
 
   seleccionarEquipo(equipo: string): void {
-    this.equipoTexto           = equipo;
-    this.equipoSeleccionado    = equipo;
+    if (!this.equiposSeleccionados.includes(equipo)) {
+      this.equiposSeleccionados.push(equipo);
+    }
+    this.equipoTexto         = '';
+    this.equiposFiltrados    = this.todosLosEquipos.filter(e => !this.equiposSeleccionados.includes(e));
     this.mostrarDropdownEquipo = false;
   }
 
+  quitarEquipo(equipo: string): void {
+    this.equiposSeleccionados = this.equiposSeleccionados.filter(e => e !== equipo);
+  }
+
   limpiarEquipo(): void {
-    this.equipoTexto           = '';
-    this.equipoSeleccionado    = '';
-    this.equiposFiltrados      = this.todosLosEquipos;
+    this.equipoTexto          = '';
+    this.equiposSeleccionados = [];
+    this.equiposFiltrados     = this.todosLosEquipos;
     this.mostrarDropdownEquipo = false;
   }
 
@@ -179,8 +189,8 @@ export class PersonalizarSugerenciasPage implements OnInit {
       probMinima:       this.filtro.probMinima / 100,
       probMaxima:       this.filtro.probMaxima / 100,
       cuotaMinimaTotal: this.filtro.cuotaMinimaTotal,
-      equipoBuscado:    this.equipoSeleccionado || this.equipoTexto.trim() || null,
-      ligaBuscada:      this.ligaSeleccionada || this.ligaTexto.trim() || null,
+      equiposBuscados:  this.equiposSeleccionados,
+      ligasBuscadas:    this.ligasSeleccionadas,
       tipoApuesta:      this.filtro.tipoApuesta || null,
       categorias:       this.categoriasSeleccionadas,
     };
@@ -205,9 +215,11 @@ export class PersonalizarSugerenciasPage implements OnInit {
       cuotaMinimaTotal: null,
       tipoApuesta:      '',
     };
-    this.categoriasSeleccionadas = [];
+    this.categoriasSeleccionadas  = [];
     this.limpiarLiga();
     this.limpiarEquipo();
+    this.ligasSeleccionadas   = [];
+    this.equiposSeleccionados = [];
     this.resultados = [];
     this.error      = '';
     this.buscado    = false;
@@ -252,12 +264,14 @@ export class PersonalizarSugerenciasPage implements OnInit {
     const linea = this.lineaSeleccionada;
 
     this.pickService.crear({
-      partidoId:     linea.idPartido,
-      nombreMercado: linea.mercado,
-      probabilidad:  linea.probabilidad,
-      valorCuota:    this.pickCuota,
-      casaApuestas:  this.pickCasa || 'Sin especificar',
-      canal:         this.pickCanal,
+      partidoId:        linea.idPartido,
+      nombreMercado:    linea.mercado,
+      probabilidad:     linea.probabilidad,
+      edge:             linea.edge,
+      valorCuota:       this.pickCuota,
+      casaApuestas:     this.pickCasa || 'Sin especificar',
+      canal:            this.pickCanal,
+      categoriaMercado: linea.categoria,
     }).subscribe({
       next: () => {
         alert(`✓ Pick publicado correctamente en canal ${this.pickCanal}`);

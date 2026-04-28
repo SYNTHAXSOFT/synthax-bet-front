@@ -1,4 +1,4 @@
-<div class="container-fluid px-4">
+<div class="container-fluid px-2 px-md-4">
   <h2 class="mb-2">Lista de usuarios</h2>
   <hr class="mb-4">
 
@@ -16,7 +16,7 @@
         <thead class="table-light">
           <tr>
             <th scope="col">Nombre</th>
-            <th scope="col">Email</th>
+            <th scope="col" class="d-none d-sm-table-cell">Email</th>
             <th scope="col">Rol</th>
             <th scope="col">Estado</th>
             <th scope="col">Acciones</th>
@@ -25,8 +25,11 @@
         <tbody>
           @for (usuario of usuariosList(); track usuario.id) {
             <tr>
-              <td>{{ usuario.nombre }}</td>
-              <td>{{ usuario.email }}</td>
+              <td>
+                {{ usuario.nombre }}
+                <div class="d-sm-none text-muted" style="font-size:0.72rem">{{ usuario.email }}</div>
+              </td>
+              <td class="d-none d-sm-table-cell">{{ usuario.email }}</td>
               <td>
                 <span
                   class="badge"
@@ -41,18 +44,20 @@
                 </span>
               </td>
               <td>
-                <button
-                  class="btn btn-info btn-sm me-1"
-                  (click)="editar(usuario)"
-                >
-                  <i class="fa-solid fa-pen-to-square me-1"></i>Editar
-                </button>
-                <button
-                  [class]="usuario.activo ? 'btn btn-warning btn-sm' : 'btn btn-success btn-sm'"
-                  (click)="activarInactivarAction(usuario)"
-                >
-                  {{ usuario.activo ? 'Desactivar' : 'Activar' }}
-                </button>
+                <div class="d-flex flex-column flex-sm-row gap-1">
+                  <button
+                    class="btn btn-info btn-sm"
+                    (click)="editar(usuario)"
+                  >
+                    <i class="fa-solid fa-pen-to-square me-1"></i>Editar
+                  </button>
+                  <button
+                    [class]="usuario.activo ? 'btn btn-warning btn-sm' : 'btn btn-success btn-sm'"
+                    (click)="activarInactivarAction(usuario)"
+                  >
+                    {{ usuario.activo ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </div>
               </td>
             </tr>
           }

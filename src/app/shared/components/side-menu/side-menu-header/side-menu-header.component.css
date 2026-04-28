@@ -1,3 +1,60 @@
+/* ── Sidebar Brand ─────────────────────────────────────────── */
+.sb-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.35rem 0.75rem 1.1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.sb-logo-ring {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 230, 118, 0.13),
+    rgba(79, 142, 247, 0.10)
+  );
+  border: 1.5px solid rgba(0, 230, 118, 0.38);
+  box-shadow:
+    0 0 18px rgba(0, 230, 118, 0.22),
+    0 0 40px rgba(0, 230, 118, 0.08);
+  margin-bottom: 0.7rem;
+  flex-shrink: 0;
+}
+
+.sb-logo-ring img {
+  width: 34px;
+  filter: drop-shadow(0 0 7px rgba(0, 230, 118, 0.60));
+}
+
+.sb-brand-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  color: #00e676;
+  text-shadow:
+    0 0 14px rgba(0, 230, 118, 0.65),
+    0 0 32px rgba(0, 230, 118, 0.22);
+  line-height: 1.2;
+  margin: 0 0 0.28rem 0;
+  white-space: nowrap;
+}
+
+.sb-brand-sub {
+  font-size: 0.59rem;
+  color: rgba(255, 255, 255, 0.32);
+  letter-spacing: 0.04em;
+  margin: 0;
+  line-height: 1.4;
+}
+
 /* Panel estilo página centrada */
 .notification-panel-page {
   position: fixed !important;

@@ -2,6 +2,7 @@ export interface SugerenciaLinea {
   idPartido:    number;
   partido:      string;
   liga:         string;
+  horaPartido?: string | null;   // "15:00" hora colombiana — null si no está disponible
   categoria:    string;
   mercado:      string;
   probabilidad: number;
@@ -23,8 +24,8 @@ export interface FiltroSugerencia {
   probMinima:       number | null;
   probMaxima:       number | null;
   cuotaMinimaTotal: number | null;
-  equipoBuscado:    string | null;
-  ligaBuscada:      string | null;   // liga completa, ej: "Premier League"
+  equiposBuscados:  string[];        // multi-selección de equipos
+  ligasBuscadas:    string[];        // multi-selección de ligas
   tipoApuesta:      string | null;   // "Simple" | "Doble" | "Triple" | null = todos
   categorias:       string[];        // [] = todas
 }

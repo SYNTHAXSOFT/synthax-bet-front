@@ -1,7 +1,7 @@
-<div class="container-fluid px-4">
+<div class="container-fluid px-2 px-md-4">
 
-  <div class="d-flex justify-content-between align-items-center mb-2">
-    <h2>Partidos de hoy</h2>
+  <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-2">
+    <h2 class="mb-0">Partidos de hoy</h2>
     @if (esAdmin) {
       <button
         class="btn btn-primary btn-sm"
@@ -78,7 +78,7 @@
           <tr>
             <th scope="col">Local</th>
             <th scope="col">Visitante</th>
-            <th scope="col">Liga</th>
+            <th scope="col" class="d-none d-sm-table-cell">Liga</th>
             <th scope="col">Hora</th>
             <th scope="col">Estado</th>
             <th scope="col">Resultado</th>
@@ -87,9 +87,9 @@
         <tbody>
           @for (partido of partidos; track partido.id) {
             <tr>
-              <td class="fw-semibold">{{ partido.equipoLocal }}</td>
-              <td class="fw-semibold">{{ partido.equipoVisitante }}</td>
-              <td class="small">{{ partido.liga }}</td>
+              <td class="fw-semibold small">{{ partido.equipoLocal }}</td>
+              <td class="fw-semibold small">{{ partido.equipoVisitante }}</td>
+              <td class="small d-none d-sm-table-cell">{{ partido.liga }}</td>
               <td>{{ partido.fechaPartido | date:'HH:mm' }}</td>
               <td>
                 <span [class]="getBadgeEstado(partido.estado)">

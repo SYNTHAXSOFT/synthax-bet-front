@@ -1,0 +1,365 @@
+<div class="container-fluid px-2 px-md-4">
+
+  <!-- ── Encabezado ──────────────────────────────────────────────────────── -->
+  <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-2">
+    <div>
+      <h2 class="mb-0">
+        <i class="fa-solid fa-magnifying-glass-chart me-2 text-success"></i>
+        Diagnóstico de sugerencias
+      </h2>
+      <p class="text-muted small mb-0">
+        Compara lo que el motor habría sugerido contra el resultado real.
+        Los resultados se obtienen automáticamente de la API al cargar.
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm" (click)="cargar()" [disabled]="cargando()">
+        <i class="fa-solid fa-rotate me-1" [class.fa-spin]="cargando()"></i>
+        {{ cargando() ? 'Cargando…' : 'Recargar' }}
+      </button>
+      <button class="btn btn-outline-info btn-sm"
+              (click)="descargar()"
+              [disabled]="descargando() || items().length === 0"
+              title="Descarga un CSV con sugerencias + estadísticas de equipos + lambdas del motor">
+        <i class="{{ descargando() ? 'fa-solid fa-spinner fa-spin' : 'fa-solid fa-file-arrow-down' }} me-1"></i>
+        {{ descargando() ? 'Generando…' : 'Descargar información' }}
+      </button>
+    </div>
+  </div>
+  <hr class="mb-3">
+
+  <!-- ── Selector de fechas históricas ────────────────────────────────────── -->
+  <div class="mb-4">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+      <span class="text-muted small me-1">
+        <i class="fa-solid fa-calendar-days me-1"></i>Historial:
+      </span>
+
+      <!-- Botón "En vivo / hoy" siempre visible -->
+      <button class="btn btn-sm"
+              [class.btn-success]="fechaSeleccionada() === null"
+              [class.btn-outline-success]="fechaSeleccionada() !== null"
+              (click)="seleccionarFecha(null)">
+        <i class="fa-solid fa-bolt me-1"></i>En vivo
+      </button>
+
+      <!-- Un botón por cada fecha con historial -->
+      @for (fecha of fechasDisponibles(); track fecha) {
+        <button class="btn btn-sm"
+                [class.btn-primary]="fechaSeleccionada() === fecha"
+                [class.btn-outline-primary]="fechaSeleccionada() !== fecha"
+                [class.fw-bold]="esFechaHoy(fecha)"
+                (click)="seleccionarFecha(fecha)"
+                [title]="fecha">
+          @if (esFechaHoy(fecha)) {
+            <i class="fa-solid fa-star me-1 text-warning"></i>
+          }
+          {{ formatFechaBoton(fecha) }}
+        </button>
+      }
+
+      @if (fechasDisponibles().length === 0) {
+        <span class="text-muted small fst-italic">Sin historial guardado aún</span>
+      }
+    </div>
+
+    @if (fechaSeleccionada() !== null) {
+      <div class="alert alert-info py-2 px-3 mt-2 mb-0 d-flex align-items-center gap-2 small">
+        <i class="fa-solid fa-database"></i>
+        Mostrando historial del <strong>{{ formatFechaBoton(fechaSeleccionada()!) }}</strong>.
+        Este snapshot fue guardado cuando se ejecutó el diagnóstico ese día.
+      </div>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">
+      <i class="fa-solid fa-triangle-exclamation me-1"></i>{{ error() }}
+    </div>
+  }
+
+  @if (cargando() && items().length === 0) {
+    <div class="text-center py-5 text-muted">
+      <i class="fa-solid fa-spinner fa-spin fa-2x mb-2 d-block"></i>
+      Obteniendo pool del motor y consultando resultados…
+    </div>
+  }
+
+  <!-- Aviso cuando quedan sugerencias sin resultado -->
+  @if (!cargando() && stats().sinResultado > 0 && items().length > 0) {
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-3 py-2">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+      <span>
+        <strong>{{ stats().sinResultado }}</strong>
+        sugerencia{{ stats().sinResultado > 1 ? 's' : '' }} sin resultado aún
+        — el partido no ha terminado o la API no devolvió datos.
+        Recarga la página después de que finalicen los partidos.
+      </span>
+    </div>
+  }
+
+  @if (items().length > 0) {
+
+    <!-- ══ BLOQUE 1: Diagnóstico por categoría ═══════════════════════════ -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+        <h6 class="fw-bold mb-1">
+          <i class="fa-solid fa-stethoscope me-2 text-warning"></i>
+          Rendimiento por categoría
+        </h6>
+        <p class="text-muted small mb-3">
+          Solo sugerencias con resultado definitivo (ganó o falló). Los nulos/push se excluyen del porcentaje.
+        </p>
+
+        @if (catStats().length === 0) {
+          <p class="text-muted small mb-0">
+            <i class="fa-solid fa-circle-info me-1"></i>
+            Sin resultados aún — los partidos deben terminar para ver el diagnóstico.
+          </p>
+        }
+
+        <div class="row g-3">
+          @for (cs of catStats(); track cs.categoria) {
+            <div class="col-12 col-sm-6 col-xl-4">
+              <div class="border rounded p-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span [class]="cs.badge + ' text-uppercase'" style="font-size:0.7rem">
+                    {{ cs.label }}
+                  </span>
+                  <span class="fw-bold fs-5" [class]="clasePctCat(cs.pct)">
+                    {{ cs.pct !== null ? cs.pct + '%' : '—' }}
+                  </span>
+                </div>
+                <div class="progress mb-2" style="height:6px">
+                  <div class="progress-bar {{ claseBarraCat(cs.pct) }}"
+                       [style.width]="(cs.pct ?? 0) + '%'"></div>
+                </div>
+                <div class="d-flex justify-content-between text-muted small">
+                  <span><i class="fa-solid fa-circle-check text-success me-1"></i>{{ cs.ganados }}</span>
+                  <span><i class="fa-solid fa-circle-xmark text-danger me-1"></i>{{ cs.perdidos }}</span>
+                  <span>de {{ cs.evaluados }} evaluados</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ BLOQUE 2: Tarjetas resumen ════════════════════════════════════ -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body py-3">
+            <div class="fs-2 fw-bold text-secondary">{{ stats().total }}</div>
+            <div class="small text-muted">Sugerencias</div>
+            <div class="small text-muted" style="font-size:0.72rem">en el pool del motor</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body py-3">
+            <div class="fs-2 fw-bold"
+                 [class.text-success]="(stats().pct ?? 0) >= 55"
+                 [class.text-warning]="(stats().pct ?? 0) >= 40 && (stats().pct ?? 0) < 55"
+                 [class.text-danger]="(stats().pct ?? 0) < 40 && stats().pct !== null"
+                 [class.text-muted]="stats().pct === null">
+              @if (stats().pct !== null) { {{ stats().pct }}% } @else { — }
+            </div>
+            <div class="small text-muted">Win rate</div>
+            <div class="small text-muted" style="font-size:0.72rem">
+              {{ stats().ganados }}/{{ stats().ganados + stats().perdidos }} evaluados
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body py-3">
+            <div class="fs-2 fw-bold text-success">{{ stats().ganados }}</div>
+            <div class="small text-muted">Ganaron</div>
+            <div class="small text-danger" style="font-size:0.72rem">
+              {{ stats().perdidos }} fallaron
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm text-center h-100">
+          <div class="card-body py-3">
+            <div class="fs-2 fw-bold text-warning">{{ stats().sinResultado }}</div>
+            <div class="small text-muted">Sin resultado</div>
+            <div class="small text-muted" style="font-size:0.72rem">
+              {{ stats().nulos }} nulos/push
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ BLOQUE 3: Tabla detallada ════════════════════════════════════ -->
+
+    <!-- Filtros rápidos -->
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      <button class="btn btn-sm"
+              [class.btn-success]="filtroActivo === 'gano'"
+              [class.btn-outline-success]="filtroActivo !== 'gano'"
+              (click)="setFiltro('gano')">
+        <i class="fa-solid fa-circle-check me-1"></i>
+        Ganó <span class="badge bg-success ms-1">{{ stats().ganados }}</span>
+      </button>
+      <button class="btn btn-sm"
+              [class.btn-danger]="filtroActivo === 'fallo'"
+              [class.btn-outline-danger]="filtroActivo !== 'fallo'"
+              (click)="setFiltro('fallo')">
+        <i class="fa-solid fa-circle-xmark me-1"></i>
+        Falló <span class="badge bg-danger ms-1">{{ stats().perdidos }}</span>
+      </button>
+      <button class="btn btn-sm"
+              [class.btn-warning]="filtroActivo === 'sinResultado'"
+              [class.btn-outline-warning]="filtroActivo !== 'sinResultado'"
+              (click)="setFiltro('sinResultado')">
+        <i class="fa-solid fa-clock me-1"></i>
+        Sin resultado <span class="badge bg-warning text-dark ms-1">{{ stats().sinResultado }}</span>
+      </button>
+      <button class="btn btn-sm"
+              [class.btn-secondary]="filtroActivo === 'nulo'"
+              [class.btn-outline-secondary]="filtroActivo !== 'nulo'"
+              (click)="setFiltro('nulo')">
+        <i class="fa-solid fa-minus-circle me-1"></i>
+        Nulo/Push <span class="badge bg-secondary ms-1">{{ stats().nulos }}</span>
+      </button>
+      <button class="btn btn-sm"
+              [class.btn-dark]="filtroActivo === 'todos'"
+              [class.btn-outline-dark]="filtroActivo !== 'todos'"
+              (click)="setFiltro('todos')">
+        Todos <span class="badge bg-dark ms-1">{{ stats().total }}</span>
+      </button>
+    </div>
+
+    <!-- Buscadores -->
+    <div class="row g-2 mb-3">
+      <div class="col-12 col-md-4">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text"><i class="fa-solid fa-futbol"></i></span>
+          <input type="text" class="form-control form-control-sm"
+                 placeholder="Buscar partido…" [(ngModel)]="partidoBusqueda" />
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text"><i class="fa-solid fa-tag"></i></span>
+          <input type="text" class="form-control form-control-sm"
+                 placeholder="Categoría…" [(ngModel)]="categoriaBusqueda" />
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text"><i class="fa-solid fa-store"></i></span>
+          <input type="text" class="form-control form-control-sm"
+                 placeholder="Mercado…" [(ngModel)]="mercadoBusqueda" />
+        </div>
+      </div>
+      <div class="col-12 col-md-2">
+        <button class="btn btn-sm btn-outline-secondary w-100" (click)="limpiarBusqueda()"
+                [disabled]="!categoriaBusqueda && !mercadoBusqueda && !partidoBusqueda">
+          <i class="fa-solid fa-eraser me-1"></i>Limpiar
+        </button>
+      </div>
+    </div>
+
+    <p class="text-muted small mb-2">
+      Mostrando {{ itemsFiltrados().length }} de {{ stats().total }} sugerencias del pool
+    </p>
+
+    <!-- Tabla -->
+    <div class="card border-0 shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle mb-0" style="font-size:0.85rem">
+          <thead class="table-light">
+            <tr>
+              <th>Partido</th>
+              <th class="d-none d-lg-table-cell">Liga</th>
+              <th class="d-none d-sm-table-cell">Hora</th>
+              <th>Categoría</th>
+              <th>Mercado</th>
+              <th class="text-center">Prob.</th>
+              <th class="text-center d-none d-md-table-cell">Cuota</th>
+              <th class="text-center d-none d-md-table-cell">Edge</th>
+              <th class="text-center">Resultado</th>
+              <th class="text-center">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of itemsFiltrados(); track item.idPartido + item.mercado) {
+              <tr [class]="claseFilaEstado(item)">
+                <td class="fw-semibold text-truncate" style="max-width:150px">
+                  {{ item.partido }}
+                </td>
+                <td class="d-none d-lg-table-cell text-muted small text-truncate" style="max-width:120px">
+                  {{ item.liga }}
+                </td>
+                <td class="d-none d-sm-table-cell text-muted small">
+                  @if (item.horaPartido) {
+                    <i class="fa-regular fa-clock me-1"></i>{{ item.horaPartido }}
+                  }
+                </td>
+                <td>
+                  <span [class]="badgeCategoria(item.categoria)"
+                        style="font-size:0.68rem;text-transform:uppercase">
+                    {{ labelCategoria(item.categoria) }}
+                  </span>
+                </td>
+                <td class="small">{{ item.mercado }}</td>
+                <td class="text-center">
+                  <span class="badge"
+                        [class.bg-success]="item.probabilidad >= 0.75"
+                        [class.bg-primary]="item.probabilidad >= 0.65 && item.probabilidad < 0.75"
+                        [class.bg-info]="item.probabilidad < 0.65">
+                    {{ probPct(item.probabilidad) }}
+                  </span>
+                </td>
+                <td class="text-center d-none d-md-table-cell text-muted small">
+                  @if (item.cuota) { @{{ item.cuota.toFixed(2) }} } @else { — }
+                </td>
+                <td class="text-center d-none d-md-table-cell small">
+                  <span [class]="edgeClass(item.edge)">{{ edgePct(item.edge) }}</span>
+                </td>
+                <td class="text-center fw-semibold">
+                  @if (item.resultadoReal) { {{ item.resultadoReal }} }
+                  @else { <span class="text-muted">—</span> }
+                </td>
+                <td class="text-center">
+                  <i [class]="iconoEstado(item)" [title]="textoEstado(item)"></i>
+                  <span class="d-none d-xl-inline ms-1 small">{{ textoEstado(item) }}</span>
+                </td>
+              </tr>
+            }
+            @if (itemsFiltrados().length === 0) {
+              <tr>
+                <td colspan="10" class="text-center text-muted py-4">
+                  No hay sugerencias que coincidan con el filtro activo.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  }
+
+  <!-- ── Estado vacío ────────────────────────────────────────────────────── -->
+  @if (!cargando() && items().length === 0 && !error()) {
+    <div class="text-center py-5 text-muted">
+      <i class="fa-solid fa-magnifying-glass-chart fa-3x mb-3 d-block opacity-25"></i>
+      <p class="mb-1">Sin sugerencias del motor para mostrar.</p>
+      <p class="small">Ejecuta el motor de análisis para generar el pool del día.</p>
+    </div>
+  }
+
+</div>
