@@ -26,6 +26,10 @@ export class MercadoPipe implements PipeTransform {
 
     let resultado = value;
 
+    // 0. BTTS → Ambos marcan (ANTES que cualquier otra regla)
+    resultado = resultado.replace(/BTTS Sí/gi, 'Ambos marcan Sí');
+    resultado = resultado.replace(/BTTS No/gi, 'Ambos marcan No');
+
     // 1. No Clean Sheet → Sí recibe goles (ANTES que Clean Sheet para no solapar)
     resultado = resultado.replace(/No Clean Sheet Local/gi,     'Sí recibe goles (Local)');
     resultado = resultado.replace(/No Clean Sheet Visitante/gi, 'Sí recibe goles (Visitante)');
