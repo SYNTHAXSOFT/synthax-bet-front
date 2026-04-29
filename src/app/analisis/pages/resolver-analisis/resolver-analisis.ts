@@ -147,6 +147,15 @@ export class ResolverAnalisisPage implements OnInit {
     this.cargar();
   }
 
+  /** Fecha de hoy en formato yyyy-MM-dd — usada como límite máximo del calendar picker */
+  readonly today = new Date().toISOString().slice(0, 10);
+
+  /** Maneja el cambio del <input type="date"> del calendar picker */
+  seleccionarFechaDesdeCalendario(event: Event): void {
+    const valor = (event.target as HTMLInputElement).value; // "yyyy-MM-dd" o ""
+    this.seleccionarFecha(valor || null);
+  }
+
   setFiltro(f: Filtro): void { this.filtroActivo = f; }
 
   formatFechaBoton(fecha: string): string {

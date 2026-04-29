@@ -55,6 +55,7 @@ export interface ResolucionAnalisis {
   partido:        string;   // "Real Madrid vs Barcelona"
   liga:           string;
   horaPartido:    string | null;
+  fechaPartido:   string | null;  // "28/04/2025" formato dd/MM/yyyy
   categoria:      string;
   mercado:        string;
   probabilidad:   number;

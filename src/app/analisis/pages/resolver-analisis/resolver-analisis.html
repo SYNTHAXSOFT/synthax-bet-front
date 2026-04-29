@@ -28,7 +28,7 @@
   </div>
   <hr class="mb-3">
 
-  <!-- ── Selector de fechas históricas ────────────────────────────────────── -->
+  <!-- ── Selector de fechas ────────────────────────────────────────────────── -->
   <div class="mb-4">
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <span class="text-muted small me-1">
@@ -43,23 +43,24 @@
         <i class="fa-solid fa-bolt me-1"></i>En vivo
       </button>
 
-      <!-- Un botón por cada fecha con historial -->
+      <!-- Calendar picker — siempre visible, permite elegir cualquier fecha -->
+      <input type="date"
+             class="form-control form-control-sm"
+             style="width: auto; min-width: 150px"
+             [max]="today"
+             [value]="fechaSeleccionada() ?? ''"
+             (change)="seleccionarFechaDesdeCalendario($event)"
+             title="Seleccionar fecha del historial" />
+
+      <!-- Accesos rápidos a fechas con historial guardado -->
       @for (fecha of fechasDisponibles(); track fecha) {
         <button class="btn btn-sm"
                 [class.btn-primary]="fechaSeleccionada() === fecha"
                 [class.btn-outline-primary]="fechaSeleccionada() !== fecha"
-                [class.fw-bold]="esFechaHoy(fecha)"
                 (click)="seleccionarFecha(fecha)"
                 [title]="fecha">
-          @if (esFechaHoy(fecha)) {
-            <i class="fa-solid fa-star me-1 text-warning"></i>
-          }
           {{ formatFechaBoton(fecha) }}
         </button>
-      }
-
-      @if (fechasDisponibles().length === 0) {
-        <span class="text-muted small fst-italic">Sin historial guardado aún</span>
       }
     </div>
 
@@ -284,6 +285,7 @@
             <tr>
               <th>Partido</th>
               <th class="d-none d-lg-table-cell">Liga</th>
+              <th class="d-none d-sm-table-cell">Fecha</th>
               <th class="d-none d-sm-table-cell">Hora</th>
               <th>Categoría</th>
               <th>Mercado</th>
@@ -302,6 +304,11 @@
                 </td>
                 <td class="d-none d-lg-table-cell text-muted small text-truncate" style="max-width:120px">
                   {{ item.liga }}
+                </td>
+                <td class="d-none d-sm-table-cell text-muted small">
+                  @if (item.fechaPartido) {
+                    <i class="fa-regular fa-calendar me-1"></i>{{ item.fechaPartido }}
+                  }
                 </td>
                 <td class="d-none d-sm-table-cell text-muted small">
                   @if (item.horaPartido) {
@@ -341,7 +348,7 @@
             }
             @if (itemsFiltrados().length === 0) {
               <tr>
-                <td colspan="10" class="text-center text-muted py-4">
+                <td colspan="11" class="text-center text-muted py-4">
                   No hay sugerencias que coincidan con el filtro activo.
                 </td>
               </tr>
