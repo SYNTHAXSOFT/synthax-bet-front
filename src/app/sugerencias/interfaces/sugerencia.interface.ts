@@ -21,11 +21,12 @@ export interface Sugerencia {
 }
 
 export interface FiltroSugerencia {
-  probMinima:       number | null;
-  probMaxima:       number | null;
-  cuotaMinimaTotal: number | null;
-  equiposBuscados:  string[];        // multi-selección de equipos
-  ligasBuscadas:    string[];        // multi-selección de ligas
-  tipoApuesta:      string | null;   // "Simple" | "Doble" | "Triple" | null = todos
-  categorias:       string[];        // [] = todas
+  probMinima:         number | null;
+  probMaxima:         number | null;
+  cuotaMinimaTotal:   number | null;
+  cuotaMinimaPorPata: number | null;
+  equiposBuscados:    string[];        // multi-selección de equipos
+  ligasBuscadas:      string[];        // multi-selección de ligas
+  tipoApuesta:        string | null;   // "Simple" | "Doble" | "Triple" | null = todos
+  categorias:         string[];        // [] = todas
 }

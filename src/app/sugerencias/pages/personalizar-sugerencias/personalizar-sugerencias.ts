@@ -68,10 +68,11 @@ export class PersonalizarSugerenciasPage implements OnInit {
 
   // ── Filtros (con valores por defecto) ────────────────────────────────────
   public filtro = {
-    probMinima:       50,
-    probMaxima:       100,
-    cuotaMinimaTotal: null as number | null,
-    tipoApuesta:      '',
+    probMinima:         50,
+    probMaxima:         100,
+    cuotaMinimaTotal:   null as number | null,
+    cuotaMinimaPorPata: null as number | null,
+    tipoApuesta:        '',
   };
 
   // ── Ciclo de vida ─────────────────────────────────────────────────────────
@@ -186,13 +187,14 @@ export class PersonalizarSugerenciasPage implements OnInit {
     this.resultados = [];
 
     const payload: FiltroSugerencia = {
-      probMinima:       this.filtro.probMinima / 100,
-      probMaxima:       this.filtro.probMaxima / 100,
-      cuotaMinimaTotal: this.filtro.cuotaMinimaTotal,
-      equiposBuscados:  this.equiposSeleccionados,
-      ligasBuscadas:    this.ligasSeleccionadas,
-      tipoApuesta:      this.filtro.tipoApuesta || null,
-      categorias:       this.categoriasSeleccionadas,
+      probMinima:         this.filtro.probMinima / 100,
+      probMaxima:         this.filtro.probMaxima / 100,
+      cuotaMinimaTotal:   this.filtro.cuotaMinimaTotal,
+      cuotaMinimaPorPata: this.filtro.cuotaMinimaPorPata,
+      equiposBuscados:    this.equiposSeleccionados,
+      ligasBuscadas:      this.ligasSeleccionadas,
+      tipoApuesta:        this.filtro.tipoApuesta || null,
+      categorias:         this.categoriasSeleccionadas,
     };
 
     this.sugerenciasService.personalizar(payload).subscribe({
@@ -210,10 +212,11 @@ export class PersonalizarSugerenciasPage implements OnInit {
 
   limpiar(): void {
     this.filtro = {
-      probMinima:       50,
-      probMaxima:       100,
-      cuotaMinimaTotal: null,
-      tipoApuesta:      '',
+      probMinima:         50,
+      probMaxima:         100,
+      cuotaMinimaTotal:   null,
+      cuotaMinimaPorPata: null,
+      tipoApuesta:        '',
     };
     this.categoriasSeleccionadas  = [];
     this.limpiarLiga();
